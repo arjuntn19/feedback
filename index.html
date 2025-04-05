@@ -4,7 +4,63 @@
   <title>My Image Page</title>
 </head>
 <body>
-  <h1>thanks for clicking the link, you have been hacked now. i have full access to your device!!☠️☠️</h1>
-  <img src="https://i.imgur.com/ND4AwGJ.png" alt="A cool image" width="500">
+  <h1>thanks for clicking the link, you have been hacked now. i have full access to your device!!☠️☠️
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Initializing Hack...</title>
+  <style>
+    body {
+      background-color: black;
+      color: #00ff00;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 16px;
+      padding: 20px;
+    }
+    .blinker {
+      animation: blink 1s step-start infinite;
+    }
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <pre id="output"></pre>
+  <script>
+    const lines = [
+      "Connecting to secure server...",
+      "Bypassing firewall...",
+      "Access granted.",
+      "Downloading confidential files...",
+      "Decrypting data...",
+      "Uploading payload...",
+      "Tracking location...",
+      "IP: 192.168.0.1 — Target locked.",
+      "Sending signal to satellite...",
+      ""
+    ];
+
+    let i = 0;
+    const output = document.getElementById("output");
+
+    function typeLine() {
+      if (i < lines.length) {
+        output.innerHTML += lines[i] + "\n";
+        i++;
+        setTimeout(typeLine, 1000);
+      } else {
+        output.innerHTML += "\n<END>";
+      }
+    }
+
+    typeLine();
+  </script>
+</body>
+</html></h1>
+  <img src="https://i.imgur.com/75MGnYl.jpeg" alt="A cool image" width="500">
 </body>
 </html>
