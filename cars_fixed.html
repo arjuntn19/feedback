@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Caar Seva — Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+
+/* ═══════════════════ TOKENS ═══════════════════ */
+:root {
+  --red:       #E8251A;
+  --red-d:     #C01F15;
+  --red-l:     #FFF0EF;
+  --ink:       #1A1A1A;
+  --ink2:      #555;
+  --muted:     #999;
+  --bg:        #F2F2F2;
+  --white:     #fff;
+  --border:    #E0E0E0;
+  --wa:        #25D366;
+  --radius:    10px;
+  --sh:        0 2px 12px rgba(0,0,0,.08);
+  --sh-h:      0 8px 32px rgba(0,0,0,.14);
+  --sidebar-w: 220px;
+  --top-h:     52px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+
+/* ═══════════════════ TOP BAR ═══════════════════ */
+.topbar{
+  position:sticky;top:0;z-index:400;
+  background:var(--white);border-bottom:1px solid var(--border);
+  height:var(--top-h);padding:0 18px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 1px 6px rgba(0,0,0,.06);
+}
+.live-wrap{display:flex;align-items:center;gap:7px;white-space:nowrap;flex-shrink:0;}
+.live-dot{
+  width:9px;height:9px;background:#3DBE6A;border-radius:50%;
+  box-shadow:0 0 0 3px rgba(61,190,106,.2);
+  animation:blink 2s ease infinite;
+}
+@keyframes blink{0%,100%{box-shadow:0 0 0 3px rgba(61,190,106,.2);}50%{box-shadow:0 0 0 6px rgba(61,190,106,.05);}}
+.live-label{font-family:'Nunito',sans-serif;font-size:12.5px;font-weight:700;color:var(--ink2);}
+.live-label span{color:var(--red);}
+
+.search-wrap{position:relative;flex:1;max-width:380px;margin-left:auto;}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;}
+.search-wrap input{
+  width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;
+  padding:7px 10px 7px 32px;font-family:'Nunito Sans',sans-serif;font-size:13px;
+  color:var(--ink);outline:none;transition:border-color .18s;
+}
+.search-wrap input:focus{border-color:var(--red);}
+.search-wrap input::placeholder{color:var(--muted);}
+
+/* ═══════════════════ LAYOUT ═══════════════════ */
+.layout{display:flex;align-items:flex-start;min-height:calc(100vh - var(--top-h));}
+
+/* ═══════════════════ SIDEBAR (desktop/tablet) ═══════════════════ */
+:root { --sidebar-w: 250px; }
+
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--white);border-right:1px solid var(--border);
+  position:sticky;top:var(--top-h);
+  height:calc(100vh - var(--top-h));
+  overflow-y:auto;
+  display:flex;flex-direction:column;
+}
+.sidebar::-webkit-scrollbar{width:3px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ── Top section: results + quick pills ── */
+.sb-top{padding:14px 14px 10px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px;}
+
+.sb-results{font-size:12px;color:var(--muted);}
+.sb-results strong{color:var(--ink);font-weight:700;}
+
+.sb-quick-label{
+  font-family:'Nunito',sans-serif;font-size:9.5px;font-weight:800;
+  letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);
+}
+
+/* Quick pills — horizontal wrap */
+.sb-quick-pills{display:flex;flex-wrap:wrap;gap:5px;}
+.sb-qpill{
+  background:var(--bg);border:1.5px solid var(--border);border-radius:20px;
+  padding:4px 11px;font-family:'Nunito',sans-serif;font-size:11.5px;font-weight:700;
+  color:var(--ink2);cursor:pointer;transition:all .18s;white-space:nowrap;
+}
+.sb-qpill:hover{border-color:var(--red);color:var(--red);background:var(--red-l);}
+.sb-qpill.active{border-color:var(--red);color:var(--red);background:var(--red-l);}
+
+.sb-clear{
+  background:none;border:none;color:var(--muted);font-size:11.5px;
+  font-family:'Nunito Sans',sans-serif;cursor:pointer;padding:0;
+  transition:color .18s;text-align:left;
+}
+.sb-clear:hover{color:var(--red);}
+
+/* ── Accordion section ── */
+.sb-accordion{flex:1;overflow-y:auto;}
+.sb-accordion::-webkit-scrollbar{display:none;}
+
+.acc-row{border-bottom:1px solid var(--border);}
+
+.acc-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 16px;cursor:pointer;
+  font-family:'Nunito',sans-serif;font-size:13.5px;font-weight:700;
+  color:var(--ink);background:var(--white);
+  transition:background .15s;
+  user-select:none;
+}
+.acc-header:hover{background:#FAFAFA;}
+.acc-header.has-val .acc-name{color:var(--red);}
+
+.acc-name{flex:1;}
+.acc-badge{
+  font-size:10px;font-weight:800;color:var(--red);
+  background:var(--red-l);border-radius:10px;padding:1px 7px;margin-right:6px;
+  display:none;
+}
+.acc-header.has-val .acc-badge{display:inline;}
+
+.acc-chevron{
+  width:18px;height:18px;flex-shrink:0;
+  transition:transform .25s;color:var(--muted);
+}
+.acc-row.open .acc-chevron{transform:rotate(180deg);}
+
+.acc-body{
+  display:none;padding:0 14px 14px;
+  flex-direction:column;gap:5px;
+  background:var(--bg);
+}
+.acc-row.open .acc-body{display:flex;}
+
+/* Pills inside accordion */
+.acc-pill{
+  background:var(--white);border:1.5px solid var(--border);border-radius:7px;
+  padding:7px 11px;font-family:'Nunito',sans-serif;font-size:12.5px;font-weight:700;
+  color:var(--ink2);cursor:pointer;text-align:left;transition:all .18s;width:100%;
+}
+.acc-pill:hover{border-color:var(--red);color:var(--red);background:var(--red-l);}
+.acc-pill.active{border-color:var(--red);color:var(--red);background:var(--red-l);}
+.acc-pill-any{
+  border-style:dashed;color:var(--muted);font-size:11.5px;
+  margin-bottom:4px;
+}
+.acc-pill-any:hover{border-style:dashed;}
+
+/* Price slider in accordion */
+.price-slider-wrap{padding:6px 2px 4px;}
+.price-range-label{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:11.5px;font-weight:700;color:var(--ink2);
+  font-family:'Nunito',sans-serif;margin-bottom:12px;
+}
+.prl-val{color:var(--red);font-size:12px;font-weight:800;}
+.dual-slider{position:relative;height:28px;display:flex;align-items:center;}
+.dual-slider input[type=range]{
+  position:absolute;width:100%;height:4px;
+  background:transparent;pointer-events:none;
+  -webkit-appearance:none;appearance:none;outline:none;
+}
+.dual-slider input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--red);border:2px solid #fff;
+  box-shadow:0 1px 6px rgba(232,37,26,.35);
+  pointer-events:auto;cursor:pointer;transition:transform .15s;
+}
+.dual-slider input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);}
+.dual-slider input[type=range]::-moz-range-thumb{
+  width:18px;height:18px;border-radius:50%;
+  background:var(--red);border:2px solid #fff;
+  box-shadow:0 1px 6px rgba(232,37,26,.35);
+  pointer-events:auto;cursor:pointer;
+}
+.slider-track{position:absolute;left:0;right:0;height:4px;background:var(--border);border-radius:2px;z-index:0;}
+.slider-fill{position:absolute;height:4px;background:var(--red);border-radius:2px;z-index:1;}
+
+/* ═══════════════════ MOBILE FILTER BAR ═══════════════════ */
+.mob-bar{
+  display:none;/* shown via media query */
+  background:var(--white);border-bottom:1px solid var(--border);
+  padding:8px 12px;gap:7px;align-items:center;
+  position:sticky;top:var(--top-h);z-index:300;
+  box-shadow:0 2px 6px rgba(0,0,0,.04);
+}
+
+/* Filter button (frozen left) */
+.mob-filter-btn{
+  flex-shrink:0;
+  background:var(--ink);border:none;border-radius:8px;
+  padding:7px 13px;font-family:'Nunito',sans-serif;
+  font-size:12.5px;font-weight:800;color:#fff;cursor:pointer;
+  display:flex;align-items:center;gap:5px;transition:background .18s;
+  white-space:nowrap;position:relative;z-index:350;
+}
+.mob-filter-btn.has-filter{background:var(--red);}
+.mob-filter-btn svg{flex-shrink:0;}
+
+/* Scrollable quick chips */
+.mob-chips-scroll{
+  display:flex;gap:6px;overflow-x:auto;flex:1;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.mob-chips-scroll::-webkit-scrollbar{display:none;}
+.mob-chip{
+  flex-shrink:0;background:var(--bg);border:1.5px solid var(--border);
+  border-radius:20px;padding:5px 13px;
+  font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;
+  color:var(--ink2);cursor:pointer;white-space:nowrap;transition:all .18s;
+}
+.mob-chip:hover{border-color:var(--red);color:var(--red);}
+.mob-chip.active{border-color:var(--red);color:var(--red);background:var(--red-l);}
+
+/* ═══════════════════ MOBILE LAYOUT ═══════════════════ */
+@media(max-width:699px){
+  .sidebar{display:none;}
+  .mob-bar{display:flex;}
+
+  .grid{grid-template-columns:1fr;gap:12px;padding:12px 12px 40px;}
+  .search-wrap{max-width:100%;margin-left:0;}
+
+  /* Make live label visible on mobile */
+  .live-label{display:flex;}
+}
+
+/* On desktop show live label too */
+.live-label{display:flex;}
+
+
+/* ══════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════ */
+footer {
+  background: #0A0A0A;
+  padding: 60px 40px 36px;
+  position: relative;
+  overflow: hidden;
+}
+footer::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--red), #ff8a80, var(--red));
+}
+.footer-inner { max-width: 1100px; margin: 0 auto; }
+.footer-top {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 48px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  margin-bottom: 32px;
+}
+.footer-logo-img { height: 58px; width: auto; object-fit: contain; display: block; margin-bottom: 6px; }
+.footer-brand .logo-sub { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.3); margin-bottom:16px; }
+.footer-brand p { font-size:13px; color:rgba(255,255,255,0.4); line-height:1.7; max-width:280px; }
+.footer-col-title { font-family:'Nunito',sans-serif; font-size:11px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.3); margin-bottom:18px; }
+.footer-links { list-style:none; display:flex; flex-direction:column; gap:11px; }
+.footer-links a { font-size:13.5px; color:rgba(255,255,255,0.55); text-decoration:none; transition:color .2s; display:inline-flex; align-items:center; gap:7px; }
+.footer-links a:hover { color:#fff; }
+.socials { display:flex; gap:10px; margin-top:22px; }
+.social-btn { width:38px; height:38px; border-radius:9px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:center; text-decoration:none; font-size:16px; color:rgba(255,255,255,0.5); transition:all .2s; }
+.social-btn:hover { background:var(--red); border-color:var(--red); color:#fff; transform:translateY(-2px); }
+.footer-bottom { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.footer-copy { font-size:12px; color:rgba(255,255,255,0.25); }
+.footer-wa { display:inline-flex; align-items:center; gap:8px; background:rgba(37,211,102,0.12); border:1px solid rgba(37,211,102,0.25); border-radius:8px; padding:8px 16px; font-size:13px; font-weight:700; color:#25D366; text-decoration:none; font-family:'Nunito',sans-serif; transition:all .2s; }
+.footer-wa:hover { background:rgba(37,211,102,0.2); }
+
+/* Floating WA */
+.wa-float { position:fixed; bottom:28px; right:28px; z-index:850; width:58px; height:58px; background:var(--wa); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 24px rgba(37,211,102,0.45); text-decoration:none; transition:transform .2s, box-shadow .2s; animation:wafloat 3s ease-in-out infinite; }
+@keyframes wafloat { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
+.wa-float:hover { transform:scale(1.12); box-shadow:0 8px 36px rgba(37,211,102,0.55); animation:none; }
+.wa-float svg { width:28px; height:28px; fill:#ffffff; }
+
+@media(max-width:900px){
+  .footer-top { grid-template-columns:1fr 1fr; }
+  .footer-brand { grid-column:1/-1; }
+  footer { padding:50px 20px 32px; }
+}
+@media(max-width:600px){
+  .footer-top { grid-template-columns:1fr; }
+}
+
+
+/* ═══════════════════ MOBILE FILTER PANEL ═══════════════════ */
+#mobFilterPanel{ border-top:1px solid var(--border); }
+
+.mfp-section{
+  padding:14px 16px;
+  border-bottom:1px solid var(--border);
+}
+.mfp-label{
+  font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;
+  letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);
+  margin-bottom:10px;
+}
+.mfp-pills{ display:flex;flex-wrap:wrap;gap:7px; }
+.mfp-pill{
+  background:var(--bg);border:1.5px solid var(--border);border-radius:8px;
+  padding:7px 14px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;
+  color:var(--ink2);cursor:pointer;transition:all .18s;
+}
+.mfp-pill:active,.mfp-pill.active{
+  border-color:var(--red);color:var(--red);background:var(--red-l);
+}
+
+.mfp-acc-row{ border-bottom:1px solid var(--border); }
+.mfp-acc-hdr{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 16px;cursor:pointer;
+  background:var(--white);
+  -webkit-tap-highlight-color:rgba(0,0,0,.06);
+}
+.mfp-acc-name{
+  font-family:'Nunito',sans-serif;font-size:13.5px;font-weight:700;
+  color:var(--ink);flex:1;
+}
+.mfp-acc-val{
+  font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;
+  color:var(--red);background:var(--red-l);
+  border-radius:6px;padding:3px 9px;white-space:nowrap;
+}
+.mfp-acc-val.any{ background:none;color:var(--muted);padding:3px 0; }
+.mfp-chev{ flex-shrink:0;color:var(--muted);transition:transform .22s; }
+.mfp-acc-row.open .mfp-chev{ transform:rotate(180deg); }
+
+.mfp-acc-body{
+  display:none;
+  padding:0 16px 14px;
+  background:#FAFAFA;
+  flex-direction:column;gap:10px;
+}
+.mfp-acc-row.open .mfp-acc-body{ display:flex; }
+
+.mfp-clear-btn{
+  background:none;border:1.5px dashed var(--border);border-radius:8px;
+  padding:7px 14px;font-family:'Nunito',sans-serif;font-size:12px;
+  font-weight:700;color:var(--muted);cursor:pointer;text-align:left;
+  transition:all .18s;align-self:flex-start;
+}
+.mfp-clear-btn:active{ border-color:var(--red);color:var(--red); }
+
+.mfp-price-lbl{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:12px;font-weight:700;color:var(--ink2);
+  font-family:'Nunito',sans-serif;margin-bottom:12px;
+}
+.mfp-price-mid{
+  background:var(--red-l);color:var(--red);
+  border-radius:6px;padding:3px 10px;font-size:13px;
+}
+.mfp-footer{
+  display:flex;gap:10px;padding:14px 16px;
+  border-top:1px solid var(--border);
+  background:var(--white);
+}
+.mfp-btn-apply{
+  flex:1;background:var(--red);border:none;border-radius:9px;padding:12px;
+  font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;
+  color:#fff;cursor:pointer;
+}
+.mfp-btn-reset{
+  background:none;border:1.5px solid var(--border);border-radius:9px;
+  padding:12px 18px;font-family:'Nunito',sans-serif;font-size:13px;
+  font-weight:700;color:var(--ink2);cursor:pointer;
+}
+
+
+/* Fix: Hide detail page by default */
+#detailPage {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  z-index: 9999;
+  overflow-y: auto;
+}
+#detailPage.open {
+  display: block;
+}
+
+</style>
+
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+</head>
+<body>
+
+<!-- ═══════════ TOP BAR ═══════════ -->
+<div class="topbar">
+  <div class="live-wrap">
+    <div class="live-dot"></div>
+    <div class="live-label"><span id="availCount">—</span>&nbsp;available</div>
+  </div>
+  <div class="search-wrap">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+    </svg>
+    <input id="searchInput" placeholder="Search model, variant, make…" oninput="onSearch()">
+  </div>
+</div>
+
+<!-- ═══════════ MOBILE FILTER BAR ═══════════ -->
+<div class="mob-bar" id="mobBar">
+  <!-- Frozen filter button -->
+  <button class="mob-filter-btn" id="mobFilterBtn" onclick="toggleMobFilter()">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+      <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+    </svg>
+    Filter &amp; Sort
+  </button>
+  <!-- Scrollable quick chips -->
+  <div class="mob-chips-scroll" id="mobChips">
+    <button class="mob-chip active" data-val="" onclick="quickChip('',this)">All</button>
+  </div>
+</div>
+
+<!-- ═══════════ MOBILE FILTER PANEL (inline, no overlay) ═══════════ -->
+<div id="mobFilterPanel" style="display:none;background:var(--white);border-bottom:2px solid var(--border);">
+
+  <!-- Sort -->
+  <div class="mfp-section">
+    <div class="mfp-label">Sort By</div>
+    <div class="mfp-pills" id="mfpSortPills">
+      <button class="mfp-pill active" data-sort="default"    onclick="setMSort('default',this)">Latest</button>
+      <button class="mfp-pill"        data-sort="price-asc"  onclick="setMSort('price-asc',this)">Price ↑</button>
+      <button class="mfp-pill"        data-sort="price-desc" onclick="setMSort('price-desc',this)">Price ↓</button>
+      <button class="mfp-pill"        data-sort="km-asc"     onclick="setMSort('km-asc',this)">Low KM</button>
+    </div>
+  </div>
+
+  <!-- Fuel -->
+  <div class="mfp-acc-row" id="mfpRowFuel">
+    <div class="mfp-acc-hdr" onclick="toggleMfpRow('mfpRowFuel')">
+      <span class="mfp-acc-name">Fuel Type</span>
+      <span class="mfp-acc-val" id="mfpValFuel">Any</span>
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" class="mfp-chev"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="mfp-acc-body" id="mfpBodyFuel">
+      <button class="mfp-clear-btn" onclick="clearMfp('fuel','mfpRowFuel')">✕ Clear / Any</button>
+      <div class="mfp-pills" id="mfpFuelPills"></div>
+    </div>
+  </div>
+
+  <!-- Transmission -->
+  <div class="mfp-acc-row" id="mfpRowTrans">
+    <div class="mfp-acc-hdr" onclick="toggleMfpRow('mfpRowTrans')">
+      <span class="mfp-acc-name">Transmission</span>
+      <span class="mfp-acc-val" id="mfpValTrans">Any</span>
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" class="mfp-chev"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="mfp-acc-body" id="mfpBodyTrans">
+      <button class="mfp-clear-btn" onclick="clearMfp('trans','mfpRowTrans')">✕ Clear / Any</button>
+      <div class="mfp-pills" id="mfpTransPills"></div>
+    </div>
+  </div>
+
+  <!-- Body Type -->
+  <div class="mfp-acc-row" id="mfpRowBody">
+    <div class="mfp-acc-hdr" onclick="toggleMfpRow('mfpRowBody')">
+      <span class="mfp-acc-name">Body Type</span>
+      <span class="mfp-acc-val" id="mfpValBody">Any</span>
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" class="mfp-chev"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="mfp-acc-body" id="mfpBodyBody">
+      <button class="mfp-clear-btn" onclick="clearMfp('bodyType','mfpRowBody')">✕ Clear / Any</button>
+      <div class="mfp-pills" id="mfpBodyPills"></div>
+    </div>
+  </div>
+
+  <!-- Colour -->
+  <div class="mfp-acc-row" id="mfpRowColour">
+    <div class="mfp-acc-hdr" onclick="toggleMfpRow('mfpRowColour')">
+      <span class="mfp-acc-name">Colour</span>
+      <span class="mfp-acc-val" id="mfpValColour">Any</span>
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" class="mfp-chev"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+    <div class="mfp-acc-body" id="mfpBodyColour">
+      <button class="mfp-clear-btn" onclick="clearMfp('colour','mfpRowColour')">✕ Clear / Any</button>
+      <div class="mfp-pills" id="mfpColourPills"></div>
+    </div>
+  </div>
+
+  <!-- Price -->
+  <div class="mfp-section">
+    <div class="mfp-label">Price Range</div>
+    <div class="mfp-price-lbl">
+      <span>₹<span id="mfpPriceMin">0</span></span>
+      <span class="mfp-price-mid" id="mfpPriceLabel">Any Price</span>
+      <span>₹<span id="mfpPriceMax">50L+</span></span>
+    </div>
+    <div class="dual-slider" id="mfpDualSlider">
+      <div class="slider-track"></div>
+      <div class="slider-fill" id="mfpSliderFill"></div>
+      <input type="range" id="mfpRangeMin" min="0" max="5000000" step="50000" value="0" oninput="onMfpRange()">
+      <input type="range" id="mfpRangeMax" min="0" max="5000000" step="50000" value="5000000" oninput="onMfpRange()">
+    </div>
+  </div>
+
+  <!-- Footer: reset + apply -->
+  <div class="mfp-footer">
+    <button class="mfp-btn-reset" onclick="resetMfp()">Reset</button>
+    <button class="mfp-btn-apply" onclick="applyMfp()">Show Results</button>
+  </div>
+
+</div>
+
+
+<!-- ═══════════ MAIN LAYOUT ═══════════ -->
+<div class="layout" id="listView">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- Top: results count + quick fuel/trans pills -->
+    <div class="sb-top">
+      <div class="sb-results" id="sbResults">All vehicles</div>
+      <div class="sb-quick-label">Quick Filter</div>
+      <div class="sb-quick-pills" id="sbQuickFuel"></div>
+      <div class="sb-quick-pills" id="sbQuickTrans"></div>
+      <button class="sb-clear" onclick="clearAll()">✕ Clear all filters</button>
+    </div>
+
+    <!-- Accordion filters -->
+    <div class="sb-accordion" id="sbAccordion">
+
+      <!-- Sort -->
+      <div class="acc-row open" id="accSort">
+        <div class="acc-header" onclick="toggleAcc('accSort')">
+          <span class="acc-name">Sort By</span>
+          <span class="acc-badge" id="accSortBadge"></span>
+          <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="acc-body">
+          <button class="acc-pill active" onclick="setSbSort('default',this)">Latest First</button>
+          <button class="acc-pill" onclick="setSbSort('price-asc',this)">Price: Low → High</button>
+          <button class="acc-pill" onclick="setSbSort('price-desc',this)">Price: High → Low</button>
+          <button class="acc-pill" onclick="setSbSort('km-asc',this)">Lowest KM First</button>
+        </div>
+      </div>
+
+      <!-- Price Range -->
+      <div class="acc-row open" id="accPrice">
+        <div class="acc-header" onclick="toggleAcc('accPrice')">
+          <span class="acc-name">Price Range</span>
+          <span class="acc-badge" id="accPriceBadge"></span>
+          <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="acc-body">
+          <div class="price-slider-wrap">
+            <div class="price-range-label">
+              <span>₹<span id="sbPriceMinL">0</span></span>
+              <span class="prl-val" id="sbPriceRangeLabel">Any Price</span>
+              <span>₹<span id="sbPriceMaxL">50L+</span></span>
+            </div>
+            <div class="dual-slider">
+              <div class="slider-track"></div>
+              <div class="slider-fill" id="sbSliderFill"></div>
+              <input type="range" id="sbRangeMin" min="0" max="5000000" step="50000" value="0"       oninput="onSbRange()">
+              <input type="range" id="sbRangeMax" min="0" max="5000000" step="50000" value="5000000" oninput="onSbRange()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fuel -->
+      <div class="acc-row" id="accFuel">
+        <div class="acc-header" onclick="toggleAcc('accFuel')">
+          <span class="acc-name">Fuel Type</span>
+          <span class="acc-badge" id="accFuelBadge"></span>
+          <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="acc-body" id="accFuelBody">
+          <!-- filled by JS -->
+        </div>
+      </div>
+
+      <!-- Transmission -->
+      <div class="acc-row" id="accTrans">
+        <div class="acc-header" onclick="toggleAcc('accTrans')">
+          <span class="acc-name">Transmission</span>
+          <span class="acc-badge" id="accTransBadge"></span>
+          <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="acc-body" id="accTransBody">
+          <!-- filled by JS -->
+        </div>
+      </div>
+
+      <!-- Extra accordion rows injected by JS for future columns -->
+      <div id="accExtra"></div>
+
+    </div><!-- /sb-accordion -->
+
+  </aside>
+
+  <!-- GRID -->
+  <div class="main">
+    <div class="grid" id="grid">
+      <div class="state"><div class="spinner"></div><p>Loading inventory…</p></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════ DETAIL PAGE ═══════════ -->
+<div id="detailPage">
+  <div class="dp-bar">
+    <button class="dp-back" onclick="closeDetail()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>Back
+    </button>
+    <div class="dp-bar-title" id="dpBarTitle"></div>
+  </div>
+  <div class="dp-body">
+    <div class="dp-left">
+      <div class="dp-carousel" id="dpCarousel">
+        <img id="dpImg" src="" alt="">
+        <button class="dp-arrow prev" id="dpPrev" onclick="navDP(-1)">&#8592;</button>
+        <button class="dp-arrow next" id="dpNext" onclick="navDP(1)">&#8594;</button>
+        <div class="dp-counter" id="dpCounter"></div>
+        <div class="swipe-hint">← Swipe photos →</div>
+      </div>
+      <div class="dp-thumbs" id="dpThumbs"></div>
+    </div>
+    <div class="dp-right">
+      <div class="dp-info">
+        <div class="dp-price-row">
+          <div class="dp-price" id="dpPrice"></div>
+          <div class="dp-sold-tag" id="dpSoldTag" style="display:none">Sold</div>
+        </div>
+        <div class="dp-title" id="dpTitle"></div>
+        <div class="dp-make"  id="dpMake"></div>
+        <div class="dp-specs" id="dpSpecs"></div>
+        <div id="dpFeatures"></div>
+        <div id="dpSafety"></div>
+        <div class="dp-cta">
+          <a class="dp-wa" id="dpWa" href="#" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Enquire on WhatsApp
+          </a>
+          <button class="dp-call" id="dpCall">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.01 1.16 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            Call Dealer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SCRIPT ═══════════ -->
+<script>
+// ── CONFIG ──────────────────────────────────────────
+const CSV_URL      = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQcxhUjWUi_hXK2ShMxTQVekcoyjXeBlVOJ2i2vwYJmnSfNBZoSNOGO0XJSTfKGRFwQTCwA8Mg2e6kn/pub?output=csv";
+const WA_NUMBER    = "919999999999";   // ← your WhatsApp number
+const DEALER_PHONE = "9999999999";     // ← your call number
+const MAX_PRICE    = 5000000;          // slider max (50 lakh)
+// ────────────────────────────────────────────────────
+
+let allCars  = [];
+let dpImages = [], dpIdx = 0;
+
+// Shared filter state
+let S = { search:'', fuel:[], trans:[], bodyType:[], colour:[], priceMin:0, priceMax:MAX_PRICE, sort:'default' };
+
+// Popup temp state (only committed on "Apply")
+let P = {};
+
+// ── DRIVE URL FIXER ──
+function fixDriveUrl(url) {
+  if (!url) return '';
+  url = url.trim().replace(/^"|"$/g,'');
+  if (!url.includes('drive.google.com')) return url;
+  const m1 = url.match(/\/file\/d\/([^\/\?&]+)/);
+  const m2 = url.match(/[?&]id=([^&]+)/);
+  const id  = m1?m1[1]:m2?m2[1]:'';
+  return id ? `https://drive.google.com/thumbnail?id=${id}&sz=s800` : url;
+}
+
+// ── FETCH ──
+// ── FETCH INVENTORY (CORS-safe) ──
+fetch(CSV_URL, { cache: "no-store" })
+  .then(response => {
+    if (!response.ok) throw new Error("Network response was not ok");
+    return response.text();
+  })
+  .then(data => {
+    if (!data || data.trim().length < 10) {
+      throw new Error("Empty CSV response");
+    }
+    parseCSV(data);
+  })
+  .catch(error => {
+    console.error("Inventory load error:", error);
+    document.getElementById('grid').innerHTML =
+      `<div class="state">
+         <p>⚠️ Inventory temporarily unavailable.<br>Please refresh or try again later.</p>
+       </div>`;
+  });
+
+function parseCSV(raw) {
+  const lines = raw.trim().split('\n').slice(1);
+  allCars = lines.map((ln,i)=>{
+    const cols   = csvSplit(ln);
+    const photos = cols.slice(17,37).map(p=>fixDriveUrl(p)).filter(Boolean);
+    return {
+      id:       i,
+      model:    cl(cols[1]), variant: cl(cols[2]), make: cl(cols[3]),
+      category: cl(cols[4]), bodyType: cl(cols[5]),
+      fuel:     cl(cols[6]), trans:    cl(cols[7]),
+      colour:   cl(cols[8]), seats:    cl(cols[9]),
+      owners:   cl(cols[10]),features: cl(cols[11]),
+      airbags:  cl(cols[12]),safety:   cl(cols[13]),
+      odometer: parseInt((cl(cols[14])||'0').replace(/\D/g,''))||0,
+      price:    parseInt((cl(cols[15])||'0').replace(/\D/g,''))||0,
+      status:   cl(cols[16]), photos
+    };
+  }).filter(c=>c.model);
+
+  buildSidebar();
+  buildMobChips();
+  buildPopupOptions();
+  buildMfpOptions();
+  applyFilters();
+}
+function cl(v)  { return (v||'').trim().replace(/^"|"$/g,''); }
+function csvSplit(row) {
+  const out=[]; let inQ=false,cur='';
+  for(let i=0;i<row.length;i++){
+    const ch=row[i];
+    if(ch==='"'){inQ=!inQ;}
+    else if(ch===','&&!inQ){out.push(cur);cur='';}
+    else{cur+=ch;}
+  }
+  out.push(cur); return out;
+}
+
+// ── FORMAT PRICE LABEL ──
+function fmtPrice(v) {
+  if (v >= 100000)  return '₹' + (v/100000).toFixed(v%100000===0?0:1) + 'L';
+  if (v >= 1000)    return '₹' + (v/1000).toFixed(0) + 'K';
+  return '₹' + v;
+}
+
+// ── ACCORDION TOGGLE ──
+function toggleAcc(id) {
+  const row = document.getElementById(id);
+  row.classList.toggle('open');
+}
+
+// ── BUILD SIDEBAR ──
+function buildSidebar() {
+  const fuels   = [...new Set(allCars.map(c=>c.fuel).filter(Boolean))].sort();
+  const trans   = [...new Set(allCars.map(c=>c.trans).filter(Boolean))].sort();
+  const bodies  = [...new Set(allCars.map(c=>c.bodyType).filter(Boolean))].sort();
+  const colours = [...new Set(allCars.map(c=>c.colour).filter(Boolean))].sort();
+
+  // Quick pills (top section) — fuel + trans
+  const qf = document.getElementById('sbQuickFuel');
+  const qt = document.getElementById('sbQuickTrans');
+  qf.innerHTML = fuels.map(f=>
+    `<button class="sb-qpill" data-fuel="${f}" onclick="setSbFuelQ('${f}',this)">${f}</button>`
+  ).join('');
+  qt.innerHTML = trans.map(t=>
+    `<button class="sb-qpill" data-trans="${t}" onclick="setSbTransQ('${t}',this)">${t}</button>`
+  ).join('');
+
+  // Accordion: Fuel body — "Any" clears selection, then each option
+  document.getElementById('accFuelBody').innerHTML =
+    `<button class="acc-pill acc-pill-any" data-fuel="" onclick="clearSbFilter('fuel')">Any</button>` +
+    fuels.map(f=>
+      `<button class="acc-pill" data-fuel="${f}" onclick="setSbFuelAcc('${f}',this)">${f}</button>`
+    ).join('');
+
+  // Accordion: Trans body
+  document.getElementById('accTransBody').innerHTML =
+    `<button class="acc-pill acc-pill-any" data-trans="" onclick="clearSbFilter('trans')">Any</button>` +
+    trans.map(t=>
+      `<button class="acc-pill" data-trans="${t}" onclick="setSbTransAcc('${t}',this)">${t}</button>`
+    ).join('');
+
+  // Inject Body Type + Colour accordion rows into #accExtra
+  const extra = document.getElementById('accExtra');
+  extra.innerHTML = `
+    <div class="acc-row" id="accBody">
+      <div class="acc-header" onclick="toggleAcc('accBody')">
+        <span class="acc-name">Body Type</span>
+        <span class="acc-badge" id="accBodyBadge"></span>
+        <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="acc-body" id="accBodyBody">
+        <button class="acc-pill acc-pill-any" onclick="clearSbFilter('bodyType')">Any</button>
+        ${bodies.map(b=>`<button class="acc-pill" data-body="${b}" onclick="setSbBodyAcc('${b}',this)">${b}</button>`).join('')}
+      </div>
+    </div>
+    <div class="acc-row" id="accColour">
+      <div class="acc-header" onclick="toggleAcc('accColour')">
+        <span class="acc-name">Colour</span>
+        <span class="acc-badge" id="accColourBadge"></span>
+        <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="acc-body" id="accColourBody">
+        <button class="acc-pill acc-pill-any" onclick="clearSbFilter('colour')">Any</button>
+        ${colours.map(c=>`<button class="acc-pill" data-colour="${c}" onclick="setSbColourAcc('${c}',this)">${c}</button>`).join('')}
+      </div>
+    </div>`;
+
+  updateSbSlider();
+}
+
+// ── BUILD MOBILE QUICK CHIPS ──
+function buildMobChips() {
+  const fuels = [...new Set(allCars.map(c=>c.fuel).filter(Boolean))].sort();
+  const trans = [...new Set(allCars.map(c=>c.trans).filter(Boolean))].sort();
+  const cont  = document.getElementById('mobChips');
+  cont.innerHTML = `<button class="mob-chip active" data-val="" onclick="quickChip('',this)">All</button>`;
+  fuels.forEach(f=>{
+    const b=document.createElement('button');
+    b.className='mob-chip';b.dataset.val=`fuel:${f}`;b.textContent=f;
+    b.onclick=()=>quickChip(`fuel:${f}`,b);cont.appendChild(b);
+  });
+  trans.forEach(t=>{
+    const b=document.createElement('button');
+    b.className='mob-chip';b.dataset.val=`trans:${t}`;b.textContent=t;
+    b.onclick=()=>quickChip(`trans:${t}`,b);cont.appendChild(b);
+  });
+}
+
+// ── BUILD POPUP OPTIONS ──
+function buildPopupOptions() {
+  const fuels   = [...new Set(allCars.map(c=>c.fuel).filter(Boolean))].sort();
+  const trans   = [...new Set(allCars.map(c=>c.trans).filter(Boolean))].sort();
+  const bodies  = [...new Set(allCars.map(c=>c.bodyType).filter(Boolean))].sort();
+  const colours = [...new Set(allCars.map(c=>c.colour).filter(Boolean))].sort();
+
+  const fp = document.getElementById('popFuelPills');
+  const tp = document.getElementById('popTransPills');
+  const bp = document.getElementById('popBodyPills');
+  const cp = document.getElementById('popColourPills');
+
+  fp.innerHTML = '';
+  fuels.forEach(f=>{ const b=document.createElement('button');b.className='popup-pill';b.dataset.fuel=f;b.textContent=f;b.onclick=()=>setPopFuel(f,b);fp.appendChild(b); });
+
+  tp.innerHTML = '';
+  trans.forEach(t=>{ const b=document.createElement('button');b.className='popup-pill';b.dataset.trans=t;b.textContent=t;b.onclick=()=>setPopTrans(t,b);tp.appendChild(b); });
+
+  bp.innerHTML = '';
+  bodies.forEach(v=>{ const b=document.createElement('button');b.className='popup-pill';b.dataset.body=v;b.textContent=v;b.onclick=()=>setPopBody(v,b);bp.appendChild(b); });
+
+  cp.innerHTML = '';
+  colours.forEach(v=>{ const b=document.createElement('button');b.className='popup-pill';b.dataset.colour=v;b.textContent=v;b.onclick=()=>setPopColour(v,b);cp.appendChild(b); });
+
+  updatePopSlider();
+}
+
+// ══════════════════════════════════════
+//  MULTI-SELECT HELPERS
+// ══════════════════════════════════════
+
+// Toggle a value in/out of an array
+function toggleArr(arr, val) {
+  const i = arr.indexOf(val);
+  if (i === -1) arr.push(val);
+  else arr.splice(i, 1);
+  return arr;
+}
+
+// Badge text: show count if >1, else show value, else ''
+function badgeText(arr) {
+  if (!arr || !arr.length) return '';
+  if (arr.length === 1) return arr[0];
+  return arr.length + ' selected';
+}
+
+function updateAccBadge(rowId, badgeId, arr) {
+  const row    = document.getElementById(rowId);
+  const badge  = document.getElementById(badgeId);
+  const header = row ? row.querySelector('.acc-header') : null;
+  if (!badge || !header) return;
+  const txt = Array.isArray(arr) ? badgeText(arr) : arr; // allow plain string for sort/price
+  if (txt) {
+    badge.textContent = txt;
+    header.classList.add('has-val');
+  } else {
+    badge.textContent = '';
+    header.classList.remove('has-val');
+  }
+}
+
+// ══════════════════════════════════════
+//  SIDEBAR HANDLERS
+// ══════════════════════════════════════
+
+// Quick pill — fuel (multi-select toggle)
+function setSbFuelQ(v, btn) {
+  toggleArr(S.fuel, v);
+  btn.classList.toggle('active', S.fuel.includes(v));
+  syncAccFuel();
+  applyFilters();
+}
+
+// Quick pill — trans (multi-select toggle)
+function setSbTransQ(v, btn) {
+  toggleArr(S.trans, v);
+  btn.classList.toggle('active', S.trans.includes(v));
+  syncAccTrans();
+  applyFilters();
+}
+
+// Accordion pill — fuel (multi-select)
+function setSbFuelAcc(v, btn) {
+  toggleArr(S.fuel, v);
+  btn.classList.toggle('active', S.fuel.includes(v));
+  // sync quick pills
+  document.querySelectorAll('#sbQuickFuel .sb-qpill').forEach(b=>
+    b.classList.toggle('active', S.fuel.includes(b.dataset.fuel)));
+  updateAccBadge('accFuel','accFuelBadge', S.fuel);
+  applyFilters();
+}
+
+// Accordion pill — trans (multi-select)
+function setSbTransAcc(v, btn) {
+  toggleArr(S.trans, v);
+  btn.classList.toggle('active', S.trans.includes(v));
+  document.querySelectorAll('#sbQuickTrans .sb-qpill').forEach(b=>
+    b.classList.toggle('active', S.trans.includes(b.dataset.trans)));
+  updateAccBadge('accTrans','accTransBadge', S.trans);
+  applyFilters();
+}
+
+function setSbSort(v, btn) {
+  S.sort = v;
+  document.querySelectorAll('#accSort .acc-pill').forEach(b=>b.classList.toggle('active',b===btn));
+  const labels = {default:'','price-asc':'Price ↑','price-desc':'Price ↓','km-asc':'Low KM'};
+  updateAccBadge('accSort','accSortBadge', v !== 'default' ? labels[v] : '');
+  applyFilters();
+}
+
+function setSbBodyAcc(v, btn) {
+  toggleArr(S.bodyType, v);
+  btn.classList.toggle('active', S.bodyType.includes(v));
+  updateAccBadge('accBody','accBodyBadge', S.bodyType);
+  applyFilters();
+}
+
+function setSbColourAcc(v, btn) {
+  toggleArr(S.colour, v);
+  btn.classList.toggle('active', S.colour.includes(v));
+  updateAccBadge('accColour','accColourBadge', S.colour);
+  applyFilters();
+}
+
+// Popup handlers — multi-select
+function setPopFuel(v, btn) {
+  toggleArr(P.fuel, v);
+  btn.classList.toggle('active', P.fuel.includes(v));
+}
+function setPopTrans(v, btn) {
+  toggleArr(P.trans, v);
+  btn.classList.toggle('active', P.trans.includes(v));
+}
+function setPopBody(v, btn) {
+  toggleArr(P.bodyType, v);
+  btn.classList.toggle('active', P.bodyType.includes(v));
+}
+function setPopColour(v, btn) {
+  toggleArr(P.colour, v);
+  btn.classList.toggle('active', P.colour.includes(v));
+}
+
+// Clear a single sidebar filter
+function clearSbFilter(field) {
+  S[field] = [];
+  // Deactivate all pills in that filter's accordion
+  const bodyIds = {fuel:'accFuelBody', trans:'accTransBody', bodyType:'accBodyBody', colour:'accColourBody'};
+  const badgeIds = {fuel:['accFuel','accFuelBadge'], trans:['accTrans','accTransBadge'], bodyType:['accBody','accBodyBadge'], colour:['accColour','accColourBadge']};
+  const qIds = {fuel:'#sbQuickFuel .sb-qpill', trans:'#sbQuickTrans .sb-qpill'};
+  const bodyEl = document.getElementById(bodyIds[field]);
+  if (bodyEl) bodyEl.querySelectorAll('.acc-pill').forEach(b=>b.classList.remove('active'));
+  if (qIds[field]) document.querySelectorAll(qIds[field]).forEach(b=>b.classList.remove('active'));
+  const [rowId, badgeId] = badgeIds[field] || [];
+  if (rowId) updateAccBadge(rowId, badgeId, []);
+  applyFilters();
+}
+
+function syncAccFuel() {
+  document.querySelectorAll('#accFuelBody .acc-pill').forEach(b=>
+    b.classList.toggle('active', S.fuel.includes(b.dataset.fuel)));
+  updateAccBadge('accFuel','accFuelBadge', S.fuel);
+}
+function syncAccTrans() {
+  document.querySelectorAll('#accTransBody .acc-pill').forEach(b=>
+    b.classList.toggle('active', S.trans.includes(b.dataset.trans)));
+  updateAccBadge('accTrans','accTransBadge', S.trans);
+}
+
+// Sidebar price slider
+function onSbRange() {
+  let mn = parseInt(document.getElementById('sbRangeMin').value);
+  let mx = parseInt(document.getElementById('sbRangeMax').value);
+  if (mn > mx) { const t=mn; mn=mx; mx=t; }
+  S.priceMin = mn; S.priceMax = mx;
+  updateSbSlider();
+  const priceActive = mn>0||mx<MAX_PRICE;
+  updateAccBadge('accPrice','accPriceBadge', priceActive ? fmtPrice(mn)+'–'+(mx>=MAX_PRICE?'50L+':fmtPrice(mx)) : '');
+  applyFilters();
+}
+function updateSbSlider() {
+  const mn  = S.priceMin, mx = S.priceMax;
+  const pct1 = mn / MAX_PRICE * 100;
+  const pct2 = mx / MAX_PRICE * 100;
+  document.getElementById('sbRangeMin').value = mn;
+  document.getElementById('sbRangeMax').value = mx;
+  document.getElementById('sbSliderFill').style.left  = pct1 + '%';
+  document.getElementById('sbSliderFill').style.width = (pct2-pct1) + '%';
+  document.getElementById('sbPriceMinL').textContent = fmtPrice(mn).replace('₹','');
+  document.getElementById('sbPriceMaxL').textContent = mx >= MAX_PRICE ? '50L+' : fmtPrice(mx).replace('₹','');
+  document.getElementById('sbPriceRangeLabel').textContent =
+    mn===0 && mx>=MAX_PRICE ? 'Any Price' : `${fmtPrice(mn)} – ${mx>=MAX_PRICE?'50L+':fmtPrice(mx)}`;
+}
+
+// ══════════════════════════════════════
+//  MOBILE QUICK CHIP
+// ══════════════════════════════════════
+function quickChip(val, btn) {
+  // Quick chips on mobile are simple single-toggle convenience shortcuts
+  const isAll = val === '';
+  if (isAll) {
+    S.fuel=[]; S.trans=[];
+    document.querySelectorAll('.mob-chip').forEach(b=>b.classList.toggle('active', b.dataset.val===''));
+  } else {
+    // Toggle this chip's value
+    let field='', v='';
+    if (val.startsWith('fuel:'))  { field='fuel';  v=val.slice(5); }
+    if (val.startsWith('trans:')) { field='trans'; v=val.slice(6); }
+    toggleArr(S[field], v);
+    btn.classList.toggle('active', S[field].includes(v));
+    // Deactivate "All" chip if any filter active
+    const allBtn = document.querySelector('.mob-chip[data-val=""]');
+    if(allBtn) allBtn.classList.toggle('active', !S.fuel.length&&!S.trans.length);
+  }
+  applyFilters();
+}
+
+// ══════════════════════════════════════
+//  POPUP
+// ══════════════════════════════════════
+function openPopup() {
+  P = {
+    search:   S.search,
+    fuel:     [...S.fuel],
+    trans:    [...S.trans],
+    bodyType: [...S.bodyType],
+    colour:   [...S.colour],
+    priceMin: S.priceMin,
+    priceMax: S.priceMax,
+    sort:     S.sort
+  };
+  syncPopupUI();
+  const ov = document.getElementById('popupOverlay');
+  ov.style.display = 'flex';
+  ov.classList.add('open');
+  // Scroll to very top so popup (absolute positioned in iframe) is visible
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+}
+function closePopup() {
+  const ov = document.getElementById('popupOverlay');
+  ov.classList.remove('open');
+  ov.style.display = '';
+}
+function overlayClose(e) {
+  if(e.target===document.getElementById('popupOverlay')) closePopup();
+}
+
+function syncPopupUI() {
+  document.querySelectorAll('#popSortPills .popup-pill').forEach(b=>b.classList.toggle('active', b.dataset.sort===P.sort));
+  document.querySelectorAll('#popFuelPills .popup-pill').forEach(b=>b.classList.toggle('active', (P.fuel||[]).includes(b.dataset.fuel)));
+  document.querySelectorAll('#popTransPills .popup-pill').forEach(b=>b.classList.toggle('active', (P.trans||[]).includes(b.dataset.trans)));
+  document.querySelectorAll('#popBodyPills .popup-pill').forEach(b=>b.classList.toggle('active', (P.bodyType||[]).includes(b.dataset.body)));
+  document.querySelectorAll('#popColourPills .popup-pill').forEach(b=>b.classList.toggle('active', (P.colour||[]).includes(b.dataset.colour)));
+  // Sync pf-row summary values
+  updatePfRowVal('pfrFuel',   P.fuel||[]);
+  updatePfRowVal('pfrTrans',  P.trans||[]);
+  updatePfRowVal('pfrBody',   P.bodyType||[]);
+  updatePfRowVal('pfrColour', P.colour||[]);
+  // Close all pf-rows when reopening popup
+  document.querySelectorAll('.pf-row.open').forEach(r=>r.classList.remove('open'));
+  document.getElementById('popRangeMin').value = P.priceMin;
+  document.getElementById('popRangeMax').value = P.priceMax;
+  updatePopSlider();
+}
+
+function setPopSort(v,btn) {
+  P.sort=v;
+  document.querySelectorAll('#popSortPills .popup-pill').forEach(b=>b.classList.toggle('active',b===btn));
+}
+function setPopFuel(v,btn) {
+  P.fuel=v;
+  document.querySelectorAll('#popFuelPills .popup-pill').forEach(b=>b.classList.toggle('active',b===btn));
+}
+function setPopTrans(v,btn) {
+  P.trans=v;
+  document.querySelectorAll('#popTransPills .popup-pill').forEach(b=>b.classList.toggle('active',b===btn));
+}
+
+function onRangeInput() {
+  let mn = parseInt(document.getElementById('popRangeMin').value);
+  let mx = parseInt(document.getElementById('popRangeMax').value);
+  if (mn > mx) { const t=mn; mn=mx; mx=t; }
+  P.priceMin=mn; P.priceMax=mx;
+  updatePopSlider();
+}
+function updatePopSlider() {
+  const mn   = parseInt(document.getElementById('popRangeMin').value);
+  const mx   = parseInt(document.getElementById('popRangeMax').value);
+  const pct1 = mn / MAX_PRICE * 100;
+  const pct2 = mx / MAX_PRICE * 100;
+  document.getElementById('popSliderFill').style.left  = pct1+'%';
+  document.getElementById('popSliderFill').style.width = (pct2-pct1)+'%';
+  document.getElementById('popPriceMin').textContent = fmtPrice(mn).replace('₹','');
+  document.getElementById('popPriceMax').textContent = mx>=MAX_PRICE?'50L+':fmtPrice(mx).replace('₹','');
+  document.getElementById('popPriceRangeLabel').textContent =
+    mn===0 && mx>=MAX_PRICE ? 'Any Price' : `${fmtPrice(mn)} – ${mx>=MAX_PRICE?'50L+':fmtPrice(mx)}`;
+}
+
+function applyPopup() {
+  // Deep copy arrays from P into S
+  S.fuel     = [...(P.fuel||[])];
+  S.trans    = [...(P.trans||[])];
+  S.bodyType = [...(P.bodyType||[])];
+  S.colour   = [...(P.colour||[])];
+  S.sort     = P.sort;
+  S.priceMin = P.priceMin;
+  S.priceMax = P.priceMax;
+  updateSbSlider();
+  syncAccFuel(); syncAccTrans();
+  if(document.getElementById('accBodyBody'))
+    document.querySelectorAll('#accBodyBody .acc-pill').forEach(b=>b.classList.toggle('active', S.bodyType.includes(b.dataset.body)));
+  updateAccBadge('accBody','accBodyBadge', S.bodyType);
+  if(document.getElementById('accColourBody'))
+    document.querySelectorAll('#accColourBody .acc-pill').forEach(b=>b.classList.toggle('active', S.colour.includes(b.dataset.colour)));
+  updateAccBadge('accColour','accColourBadge', S.colour);
+  document.querySelectorAll('#accSort .acc-pill').forEach(b=>{
+    const sorts={0:'default',1:'price-asc',2:'price-desc',3:'km-asc'};
+    const i=[...b.parentNode.children].indexOf(b);
+    b.classList.toggle('active', sorts[i]===S.sort);
+  });
+  const sortLabels={default:'','price-asc':'Price ↑','price-desc':'Price ↓','km-asc':'Low KM'};
+  updateAccBadge('accSort','accSortBadge', sortLabels[S.sort]||'');
+  const priceActive = S.priceMin>0||S.priceMax<MAX_PRICE;
+  updateAccBadge('accPrice','accPriceBadge', priceActive ? fmtPrice(S.priceMin)+'–'+fmtPrice(S.priceMax) : '');
+  const hasFilter = S.fuel.length||S.trans.length||S.bodyType.length||S.colour.length||S.priceMin>0||S.priceMax<MAX_PRICE||S.sort!=='default';
+  document.getElementById('mobFilterBtn').classList.toggle('has-filter', !!hasFilter);
+  closePopup();
+  applyFilters();
+}
+
+function resetPopup() {
+  P = { search:S.search, fuel:[], trans:[], bodyType:[], colour:[], priceMin:0, priceMax:MAX_PRICE, sort:'default' };
+  document.getElementById('popRangeMin').value = 0;
+  document.getElementById('popRangeMax').value = MAX_PRICE;
+  syncPopupUI();
+  // syncPopupUI calls updatePfRowVal for all rows already
+}
+
+// ══════════════════════════════════════
+//  SEARCH
+// ══════════════════════════════════════
+function onSearch() {
+  S.search = document.getElementById('searchInput').value.trim().toLowerCase();
+  applyFilters();
+}
+
+// ══════════════════════════════════════
+//  CLEAR ALL
+// ══════════════════════════════════════
+function clearAll() {
+  S = { search:'', fuel:[], trans:[], bodyType:[], colour:[], priceMin:0, priceMax:MAX_PRICE, sort:'default' };
+  document.getElementById('searchInput').value='';
+  // Accordion pills
+  document.querySelectorAll('#accFuelBody .acc-pill').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#accTransBody .acc-pill').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#accBodyBody .acc-pill').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#accColourBody .acc-pill').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#accSort .acc-pill').forEach((b,i)=>b.classList.toggle('active',i===0));
+  // Quick pills
+  document.querySelectorAll('#sbQuickFuel .sb-qpill').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#sbQuickTrans .sb-qpill').forEach(b=>b.classList.remove('active'));
+  // Badges
+  updateAccBadge('accFuel','accFuelBadge',[]);
+  updateAccBadge('accTrans','accTransBadge',[]);
+  updateAccBadge('accBody','accBodyBadge',[]);
+  updateAccBadge('accColour','accColourBadge',[]);
+  updateAccBadge('accSort','accSortBadge','');
+  updateAccBadge('accPrice','accPriceBadge','');
+  // Mobile
+  document.querySelectorAll('.mob-chip').forEach((b,i)=>b.classList.toggle('active',i===0));
+  document.getElementById('mobFilterBtn').classList.remove('has-filter');
+  updateSbSlider();
+  applyFilters();
+}
+
+// ══════════════════════════════════════
+//  APPLY FILTERS & RENDER
+// ══════════════════════════════════════
+function applyFilters() {
+  let cars = allCars.filter(c=>{
+    const txt=`${c.model} ${c.variant} ${c.make}`.toLowerCase();
+    if(S.search && !txt.includes(S.search)) return false;
+    if(S.fuel.length     && !S.fuel.includes(c.fuel))         return false;
+    if(S.trans.length    && !S.trans.includes(c.trans))       return false;
+    if(S.bodyType.length && !S.bodyType.includes(c.bodyType)) return false;
+    if(S.colour.length   && !S.colour.includes(c.colour))     return false;
+    if(S.priceMin>0 && c.price<S.priceMin)  return false;
+    if(S.priceMax<MAX_PRICE && c.price>S.priceMax) return false;
+    return true;
+  });
+  if(S.sort==='price-asc')  cars.sort((a,b)=>a.price-b.price);
+  if(S.sort==='price-desc') cars.sort((a,b)=>b.price-a.price);
+  if(S.sort==='km-asc')     cars.sort((a,b)=>a.odometer-b.odometer);
+  renderGrid(cars);
+}
+
+function renderGrid(cars) {
+  const avail = allCars.filter(c=>c.status.toLowerCase()!=='sold').length;
+  document.getElementById('availCount').textContent = avail;
+  document.getElementById('sbResults').innerHTML =
+    `Showing <strong>${cars.length}</strong> of ${allCars.length}`;
+
+  if (!cars.length) {
+    document.getElementById('grid').innerHTML =
+      `<div class="state"><p>🔍 No vehicles found.<br>Try adjusting your filters.</p></div>`;
+    notifyHeight(); return;
+  }
+
+  document.getElementById('grid').innerHTML = cars.map((c,i)=>{
+    const sold    = c.status.toLowerCase()==='sold';
+    const title   = [c.model,c.variant].filter(Boolean).join(' ');
+    const mainImg = c.photos[0]||'';
+    const km      = c.odometer ? c.odometer.toLocaleString('en-IN')+' km' : '';
+    const pStr    = c.price>0 ? '₹'+c.price.toLocaleString('en-IN') : '';
+    const n       = c.photos.length;
+    const waMsg   = encodeURIComponent(`Hi, I'm interested in the ${title}${pStr?' ('+pStr+')':''}. Is it available?`);
+    const waHref  = `https://wa.me/${WA_NUMBER}?text=${waMsg}`;
+    return `
+    <div class="card" style="animation-delay:${Math.min(i,16)*.04}s" onclick="openDetail(${c.id})">
+      <div class="img-wrap">
+        ${mainImg?`<img src="${x(mainImg)}" alt="${x(title)}" loading="lazy" onerror="this.src='';this.style.display='none'">`:`<div class="no-photo">No photo</div>`}
+        ${sold?'<div class="badge-sold">Sold</div>':''}
+        ${n>1?`<div class="badge-n"><svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>${n}</div>`:''}
+      </div>
+      <div class="card-body">
+        ${c.make?`<div class="car-make">${x(c.make)}</div>`:''}
+        <div class="car-title">${x(title)||'Unnamed Vehicle'}</div>
+        <div class="specs">
+          ${c.fuel    ?`<span class="spec">⛽ ${x(c.fuel)}</span>`:''}
+          ${c.trans   ?`<span class="spec">⚙️ ${x(c.trans)}</span>`:''}
+          ${km        ?`<span class="spec">🕐 ${km}</span>`:''}
+          ${c.bodyType?`<span class="spec">🚘 ${x(c.bodyType)}</span>`:''}
+          ${c.colour  ?`<span class="spec">🎨 ${x(c.colour)}</span>`:''}
+        </div>
+        <div class="card-foot">
+          ${pStr?`<div class="price">${pStr}</div>`:`<div class="por">Price on request</div>`}
+          <a class="btn-wa" href="${waHref}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Enquire
+          </a>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  setTimeout(notifyHeight,300);
+}
+function x(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ══════════════════════════════════════
+//  DETAIL PAGE
+// ══════════════════════════════════════
+function openDetail(id) {
+  const car=allCars.find(c=>c.id===id); if(!car) return;
+  const title  =[car.model,car.variant].filter(Boolean).join(' ');
+  const pStr   =car.price>0?'₹'+car.price.toLocaleString('en-IN'):'Price on Request';
+  const km     =car.odometer?car.odometer.toLocaleString('en-IN')+' km':'—';
+  const sold   =car.status.toLowerCase()==='sold';
+  const waMsg  =encodeURIComponent(`Hi, I'm interested in the ${title} (${pStr}). Is it still available?`);
+
+  dpImages=car.photos; dpIdx=0;
+  document.getElementById('dpBarTitle').textContent=title;
+  document.getElementById('dpPrice').textContent=pStr;
+  document.getElementById('dpSoldTag').style.display=sold?'':'none';
+  document.getElementById('dpTitle').textContent=title;
+  document.getElementById('dpMake').textContent=car.make||'';
+  // Features block
+  const featEl = document.getElementById('dpFeatures');
+  if (car.features && featEl) {
+    const feats = car.features.split(/[,;|]/).map(f=>f.trim()).filter(Boolean);
+    if (feats.length) {
+      featEl.innerHTML = `<div style="margin-bottom:14px;">
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;">Features</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">${feats.map(f=>`<span style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--ink2);">${x(f)}</span>`).join('')}</div>
+      </div>`;
+    } else featEl.innerHTML='';
+  } else if(featEl) featEl.innerHTML='';
+
+  // Safety features block
+  const safeEl = document.getElementById('dpSafety');
+  if (car.safety && safeEl) {
+    const safes = car.safety.split(/[,;|]/).map(s=>s.trim()).filter(Boolean);
+    if (safes.length) {
+      safeEl.innerHTML = `<div style="margin-bottom:14px;">
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px;">Safety Features</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">${safes.map(s=>`<span style="background:#F0FFF4;border:1px solid #C6F6D5;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;color:#276749;">🛡 ${x(s)}</span>`).join('')}</div>
+      </div>`;
+    } else safeEl.innerHTML='';
+  } else if(safeEl) safeEl.innerHTML='';
+
+  document.getElementById('dpSpecs').innerHTML=[
+    {label:'Fuel Type',    value:car.fuel||''},
+    {label:'Transmission', value:car.trans||''},
+    {label:'Odometer',     value:km},
+    {label:'Body Type',    value:car.bodyType||''},
+    {label:'Colour',       value:car.colour||''},
+    {label:'Seats',        value:car.seats ? car.seats+' Seats' : ''},
+    {label:'Owners',       value:car.owners ? car.owners+' Owner(s)' : ''},
+    {label:'Airbags',      value:car.airbags ? car.airbags+' Airbags' : ''},
+  ].filter(s=>s.value).map(s=>`<div class="dp-spec-item"><div class="dp-spec-label">${s.label}</div><div class="dp-spec-value">${s.value}</div></div>`).join('');
+  document.getElementById('dpWa').href=`https://wa.me/${WA_NUMBER}?text=${waMsg}`;
+  document.getElementById('dpCall').onclick=()=>{window.location.href=`tel:${DEALER_PHONE}`;};
+
+  if(dpImages.length){updateDPCarousel();buildDPThumbs();}
+  else{document.getElementById('dpImg').src='';document.getElementById('dpThumbs').innerHTML='';document.getElementById('dpCounter').textContent='';}
+
+  document.getElementById('detailPage').classList.add('open');
+  document.getElementById('detailPage').scrollTop=0;
+  notifyHeight();
+}
+function closeDetail(){
+  document.getElementById('detailPage').classList.remove('open');
+  notifyHeight();
+}
+function updateDPCarousel(){
+  const img=document.getElementById('dpImg');
+  img.style.opacity=0; img.src=dpImages[dpIdx];
+  img.onload=()=>{img.style.opacity=1;}; img.onerror=()=>{img.style.opacity=1;};
+  document.getElementById('dpCounter').textContent=`${dpIdx+1} / ${dpImages.length}`;
+  document.getElementById('dpPrev').disabled=dpIdx===0;
+  document.getElementById('dpNext').disabled=dpIdx===dpImages.length-1;
+  document.querySelectorAll('.dp-thumb').forEach((t,i)=>t.classList.toggle('active',i===dpIdx));
+  const a=document.getElementById('dpThumbs').querySelectorAll('.dp-thumb')[dpIdx];
+  if(a)a.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+}
+function buildDPThumbs(){
+  document.getElementById('dpThumbs').innerHTML=dpImages.map((u,i)=>
+    `<img class="dp-thumb${i===0?' active':''}" src="${x(u)}" loading="lazy" onclick="jumpDP(${i})" onerror="this.style.display='none'" alt="Photo ${i+1}">`
+  ).join('');
+}
+function navDP(d){dpIdx=Math.max(0,Math.min(dpImages.length-1,dpIdx+d));updateDPCarousel();}
+function jumpDP(i){dpIdx=i;updateDPCarousel();}
+
+let tX=0;
+document.getElementById('dpCarousel').addEventListener('touchstart',e=>{tX=e.touches[0].clientX;},{passive:true});
+document.getElementById('dpCarousel').addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-tX; if(Math.abs(dx)>40)navDP(dx<0?1:-1);
+});
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('detailPage').classList.contains('open'))return;
+  if(e.key==='ArrowLeft')navDP(-1);if(e.key==='ArrowRight')navDP(1);if(e.key==='Escape')closeDetail();
+});
+
+
+// ══════════════════════════════════════
+//  MOBILE FILTER PANEL
+// ══════════════════════════════════════
+
+// Temp state for panel (committed on "Show Results")
+let MP = {};
+
+function buildMfpOptions() {
+  const fuels   = [...new Set(allCars.map(c=>c.fuel).filter(Boolean))].sort();
+  const trans   = [...new Set(allCars.map(c=>c.trans).filter(Boolean))].sort();
+  const bodies  = [...new Set(allCars.map(c=>c.bodyType).filter(Boolean))].sort();
+  const colours = [...new Set(allCars.map(c=>c.colour).filter(Boolean))].sort();
+
+  function makePills(containerId, items, field, handler) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = '';
+    items.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'mfp-pill';
+      b.textContent = v;
+      b.dataset[field] = v;
+      b.onclick = () => handler(v, b);
+      el.appendChild(b);
+    });
+  }
+  makePills('mfpFuelPills',   fuels,   'fuel',   (v,b) => toggleMfpPill(b, 'fuel',   v));
+  makePills('mfpTransPills',  trans,   'trans',  (v,b) => toggleMfpPill(b, 'trans',  v));
+  makePills('mfpBodyPills',   bodies,  'body',   (v,b) => toggleMfpPill(b, 'bodyType',v));
+  makePills('mfpColourPills', colours, 'colour', (v,b) => toggleMfpPill(b, 'colour', v));
+}
+
+function toggleMobFilter() {
+  const panel = document.getElementById('mobFilterPanel');
+  const btn   = document.getElementById('mobFilterBtn');
+  const open  = panel.style.display === 'none' || panel.style.display === '';
+  if (open) {
+    // Copy current S into MP
+    MP = {
+      fuel:     [...S.fuel],
+      trans:    [...S.trans],
+      bodyType: [...S.bodyType],
+      colour:   [...S.colour],
+      priceMin: S.priceMin,
+      priceMax: S.priceMax,
+      sort:     S.sort
+    };
+    syncMfpUI();
+    panel.style.display = 'block';
+    btn.textContent = '✕ Close';
+    btn.style.background = '#555';
+  } else {
+    closeMobFilter();
+  }
+}
+
+function closeMobFilter() {
+  const panel = document.getElementById('mobFilterPanel');
+  const btn   = document.getElementById('mobFilterBtn');
+  panel.style.display = 'none';
+  // Restore button label
+  const hasFilter = S.fuel.length||S.trans.length||S.bodyType.length||S.colour.length||S.priceMin>0||S.priceMax<MAX_PRICE||S.sort!=='default';
+  btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg> Filter &amp; Sort';
+  btn.style.background = '';
+  btn.classList.toggle('has-filter', !!hasFilter);
+}
+
+function toggleMfpRow(rowId) {
+  const row = document.getElementById(rowId);
+  const isOpen = row.classList.contains('open');
+  // Close all rows
+  document.querySelectorAll('.mfp-acc-row.open').forEach(r => r.classList.remove('open'));
+  if (!isOpen) row.classList.add('open');
+}
+
+function toggleMfpPill(btn, field, val) {
+  toggleArr(MP[field], val);
+  btn.classList.toggle('active', MP[field].includes(val));
+  updateMfpVal(field);
+}
+
+function clearMfp(field, rowId) {
+  MP[field] = [];
+  // Deactivate all pills
+  const containerMap = {fuel:'mfpFuelPills', trans:'mfpTransPills', bodyType:'mfpBodyPills', colour:'mfpColourPills'};
+  const el = document.getElementById(containerMap[field]);
+  if (el) el.querySelectorAll('.mfp-pill').forEach(b => b.classList.remove('active'));
+  updateMfpVal(field);
+}
+
+function updateMfpVal(field) {
+  const valIds = {fuel:'mfpValFuel', trans:'mfpValTrans', bodyType:'mfpValBody', colour:'mfpValColour'};
+  const el = document.getElementById(valIds[field]);
+  if (!el) return;
+  const arr = MP[field] || [];
+  if (!arr.length) {
+    el.textContent = 'Any';
+    el.classList.add('any');
+  } else {
+    el.textContent = arr.length === 1 ? arr[0] : arr.length + ' selected';
+    el.classList.remove('any');
+  }
+}
+
+function setMSort(v, btn) {
+  MP.sort = v;
+  document.querySelectorAll('#mfpSortPills .mfp-pill').forEach(b => b.classList.toggle('active', b === btn));
+}
+
+function onMfpRange() {
+  let mn = parseInt(document.getElementById('mfpRangeMin').value);
+  let mx = parseInt(document.getElementById('mfpRangeMax').value);
+  if (mn > mx) { const t=mn; mn=mx; mx=t; }
+  MP.priceMin = mn; MP.priceMax = mx;
+  updateMfpSlider();
+}
+
+function updateMfpSlider() {
+  const mn = MP.priceMin, mx = MP.priceMax;
+  const p1 = mn/MAX_PRICE*100, p2 = mx/MAX_PRICE*100;
+  document.getElementById('mfpRangeMin').value = mn;
+  document.getElementById('mfpRangeMax').value = mx;
+  document.getElementById('mfpSliderFill').style.left  = p1+'%';
+  document.getElementById('mfpSliderFill').style.width = (p2-p1)+'%';
+  document.getElementById('mfpPriceMin').textContent = fmtPrice(mn).replace('₹','');
+  document.getElementById('mfpPriceMax').textContent = mx>=MAX_PRICE?'50L+':fmtPrice(mx).replace('₹','');
+  document.getElementById('mfpPriceLabel').textContent =
+    mn===0&&mx>=MAX_PRICE ? 'Any Price' : `${fmtPrice(mn)} – ${mx>=MAX_PRICE?'50L+':fmtPrice(mx)}`;
+}
+
+function syncMfpUI() {
+  // Sort pills
+  document.querySelectorAll('#mfpSortPills .mfp-pill').forEach(b => {
+    b.classList.toggle('active', b.dataset.sort === MP.sort);
+  });
+  // Filter pills
+  document.querySelectorAll('#mfpFuelPills .mfp-pill').forEach(b =>
+    b.classList.toggle('active', (MP.fuel||[]).includes(b.dataset.fuel)));
+  document.querySelectorAll('#mfpTransPills .mfp-pill').forEach(b =>
+    b.classList.toggle('active', (MP.trans||[]).includes(b.dataset.trans)));
+  document.querySelectorAll('#mfpBodyPills .mfp-pill').forEach(b =>
+    b.classList.toggle('active', (MP.bodyType||[]).includes(b.dataset.body)));
+  document.querySelectorAll('#mfpColourPills .mfp-pill').forEach(b =>
+    b.classList.toggle('active', (MP.colour||[]).includes(b.dataset.colour)));
+  // Val labels
+  ['fuel','trans','bodyType','colour'].forEach(f => updateMfpVal(f));
+  // Close all rows
+  document.querySelectorAll('.mfp-acc-row.open').forEach(r => r.classList.remove('open'));
+  // Price slider
+  document.getElementById('mfpRangeMin').value = MP.priceMin;
+  document.getElementById('mfpRangeMax').value = MP.priceMax;
+  updateMfpSlider();
+}
+
+function applyMfp() {
+  S.fuel     = [...(MP.fuel||[])];
+  S.trans    = [...(MP.trans||[])];
+  S.bodyType = [...(MP.bodyType||[])];
+  S.colour   = [...(MP.colour||[])];
+  S.priceMin = MP.priceMin;
+  S.priceMax = MP.priceMax;
+  S.sort     = MP.sort;
+  // Sync sidebar
+  updateSbSlider();
+  syncAccFuel(); syncAccTrans();
+  if(document.getElementById('accBodyBody'))
+    document.querySelectorAll('#accBodyBody .acc-pill').forEach(b=>b.classList.toggle('active', S.bodyType.includes(b.dataset.body)));
+  updateAccBadge('accBody','accBodyBadge', S.bodyType);
+  if(document.getElementById('accColourBody'))
+    document.querySelectorAll('#accColourBody .acc-pill').forEach(b=>b.classList.toggle('active', S.colour.includes(b.dataset.colour)));
+  updateAccBadge('accColour','accColourBadge', S.colour);
+  document.querySelectorAll('#accSort .acc-pill').forEach((b,i)=>{
+    const sorts={0:'default',1:'price-asc',2:'price-desc',3:'km-asc'};
+    b.classList.toggle('active', sorts[i]===S.sort);
+  });
+  const sortLabels={default:'','price-asc':'Price ↑','price-desc':'Price ↓','km-asc':'Low KM'};
+  updateAccBadge('accSort','accSortBadge', sortLabels[S.sort]||'');
+  const priceActive = S.priceMin>0||S.priceMax<MAX_PRICE;
+  updateAccBadge('accPrice','accPriceBadge', priceActive?fmtPrice(S.priceMin)+'–'+fmtPrice(S.priceMax):'');
+  closeMobFilter();
+  applyFilters();
+}
+
+function resetMfp() {
+  MP = { fuel:[], trans:[], bodyType:[], colour:[], priceMin:0, priceMax:MAX_PRICE, sort:'default' };
+  document.getElementById('mfpRangeMin').value = 0;
+  document.getElementById('mfpRangeMax').value = MAX_PRICE;
+  syncMfpUI();
+}
+
+// ── IFRAME RESIZE ──
+function notifyHeight(){
+  const h=Math.max(document.body.scrollHeight,700);
+  try{
+    window.parent.postMessage({type:'setHeight',height:h},'*');
+    window.parent.postMessage(JSON.stringify({sentinel:'amp',type:'embed-size',height:h}),'*');
+  }catch(e){}
+}
+window.addEventListener('load',notifyHeight);
+window.addEventListener('resize',notifyHeight);
+</script>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="https://drive.google.com/thumbnail?id=1LWFjToS8Cl8_wJvGUFOnc_KaFXO0KEYH&sz=s400" alt="Caar Seva" class="footer-logo-img">
+        <div class="logo-sub">Certified Pre-Owned Cars</div>
+        <p>Bengaluru's most trusted destination for certified pre-owned vehicles. Quality cars, honest prices, and a buying experience that's truly hassle-free.</p>
+        <div class="socials">
+          <a href="#" class="social-btn" title="Instagram">📸</a>
+          <a href="#" class="social-btn" title="Facebook">📘</a>
+          <a href="#" class="social-btn" title="YouTube">▶️</a>
+          <a href="#" class="social-btn" title="Twitter/X">🐦</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Quick Links</div>
+        <ul class="footer-links">
+          <li><a href="https://sites.google.com/view/caarseva">🏠 Home</a></li>
+          <li><a href="https://sites.google.com/view/caarseva/buy-cars">🚗 Buy Cars</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Contact</div>
+        <ul class="footer-links">
+          <li><a href="https://www.google.com/maps/place/1009,+80;feet+road,+Sector+A,+Ambedkar+Colony,+Yelahanka+New+Town,+Bengaluru,+Karnataka+560064/@13.0930791,77.5872272,808m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3bae185c9748559b:0x733d6fab63c2b089!8m2!3d13.0930739!4d77.5898021!16s%2Fg%2F11w1x5vfj6" target="_blank">📍 Yelahanka New Town, Bengaluru</a></li>
+          <li><a href="tel:+919999999999">📞 +91 99999 99999</a></li>
+          <li><a href="/cdn-cgi/l/email-protection#543735352627312235143339353d387a373b39">✉️ <span class="__cf_email__" data-cfemail="ddbebcbcafaeb8abbc9dbab0bcb4b1f3beb2b0">[email&#160;protected]</span></a></li>
+          <li><a href="https://www.google.com/maps/place/1009,+80;feet+road,+Sector+A,+Ambedkar+Colony,+Yelahanka+New+Town,+Bengaluru,+Karnataka+560064/@13.0930791,77.5872272,808m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3bae185c9748559b:0x733d6fab63c2b089!8m2!3d13.0930739!4d77.5898021!16s%2Fg%2F11w1x5vfj6" target="_blank">🗺️ Get Directions</a></li>
+        </ul>
+        <div style="margin-top:18px;">
+          <div class="footer-col-title">Hours</div>
+          <div style="font-size:12.5px;color:rgba(255,255,255,.4);line-height:1.8;">
+            Mon – Sat: 9:00 AM – 7:00 PM<br>Sunday: 10:00 AM – 5:00 PM
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2025 Caar Seva. All rights reserved. · Yelahanka, Bengaluru</div>
+      <a href="https://wa.me/919999999999?text=Hi, I'm interested in buying a car from Caar Seva." target="_blank" class="footer-wa">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Chat on WhatsApp
+      </a>
+    </div>
+  </div>
+</footer>
+
+<!-- Floating WA -->
+<a href="https://wa.me/919999999999?text=Hi, I want to enquire about a car at Caar Seva." target="_blank" class="wa-float" title="Chat on WhatsApp">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28">
+    <path fill="#ffffff" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+</a>
+
+</body>
+</html>
