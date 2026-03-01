@@ -148,11 +148,6 @@ body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--ink);
 }
 .acc-pill:hover{border-color:var(--red);color:var(--red);background:var(--red-l);}
 .acc-pill.active{border-color:var(--red);color:var(--red);background:var(--red-l);}
-.acc-pill-any{
-  border-style:dashed;color:var(--muted);font-size:11.5px;
-  margin-bottom:4px;
-}
-.acc-pill-any:hover{border-style:dashed;}
 
 /* Price slider in accordion */
 .price-slider-wrap{padding:6px 2px 4px;}
@@ -221,6 +216,286 @@ body{font-family:'Nunito Sans',sans-serif;background:var(--bg);color:var(--ink);
 }
 .mob-chip:hover{border-color:var(--red);color:var(--red);}
 .mob-chip.active{border-color:var(--red);color:var(--red);background:var(--red-l);}
+
+/* ═══════════════════ FILTER POPUP ═══════════════════ */
+.popup-overlay{
+  display:none;
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  width:100%;height:100%;
+  background:rgba(0,0,0,.45);
+  z-index:1000;
+  align-items:flex-end;
+  justify-content:center;
+}
+.popup-overlay.open{display:flex;}
+
+.popup{
+  background:var(--white);
+  border-radius:18px 18px 0 0;
+  width:100%;max-width:520px;
+  max-height:88vh;
+  overflow-y:auto;
+  padding:0 0 32px;
+  animation:slideUp .28s cubic-bezier(.34,1.4,.64,1);
+}
+/* On desktop/tablet, show as centered modal instead */
+@media(min-width:700px){
+  .popup-overlay{align-items:center;}
+  .popup{
+    border-radius:14px;max-width:460px;
+    max-height:80vh;margin:16px;
+    animation:popIn .25s cubic-bezier(.34,1.4,.64,1);
+  }
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+@keyframes popIn  {from{opacity:0;transform:scale(.92);}to{opacity:1;transform:scale(1);}}
+
+.popup-handle{
+  display:flex;justify-content:center;padding:12px 0 4px;
+}
+.popup-handle-bar{
+  width:36px;height:4px;background:var(--border);border-radius:2px;
+}
+/* Hide handle on desktop */
+@media(min-width:700px){.popup-handle{display:none;}}
+
+.popup-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 18px 14px;border-bottom:1px solid var(--border);
+}
+.popup-title{font-family:'Nunito',sans-serif;font-size:16px;font-weight:900;color:var(--ink);}
+.popup-close{
+  background:var(--bg);border:none;border-radius:50%;
+  width:30px;height:30px;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink2);transition:background .18s;
+}
+.popup-close:hover{background:var(--border);}
+
+.popup-body{padding:16px 18px;display:flex;flex-direction:column;gap:20px;}
+
+.popup-section{}
+.popup-section-label{
+  font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;
+  letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);
+  margin-bottom:10px;display:block;
+}
+.popup-pills{display:flex;flex-wrap:wrap;gap:7px;}
+.popup-pill{
+  background:var(--bg);border:1.5px solid var(--border);border-radius:8px;
+  padding:7px 14px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;
+  color:var(--ink2);cursor:pointer;transition:all .18s;
+}
+.popup-pill:hover{border-color:var(--red);color:var(--red);background:var(--red-l);}
+.popup-pill.active{border-color:var(--red);color:var(--red);background:var(--red-l);}
+
+/* Price slider in popup */
+.popup-price-label{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:12px;font-weight:700;color:var(--ink2);
+  font-family:'Nunito',sans-serif;margin-bottom:12px;
+}
+.popup-price-label .range-val{
+  background:var(--red-l);color:var(--red);
+  border-radius:6px;padding:3px 10px;font-size:13px;
+}
+
+/* Sort + price always-visible strips */
+.popup-sort-strip{
+  padding:14px 18px 10px;border-bottom:1px solid var(--border);
+}
+.popup-price-strip{
+  padding:12px 18px 14px;border-bottom:1px solid var(--border);
+}
+.popup-sort-label{
+  font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;
+  letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);
+  margin-bottom:10px;
+}
+
+/* Popup accordion body — scrollable */
+.popup-acc-body{
+  overflow-y:auto;
+  max-height:36vh;
+}
+.popup-acc-body::-webkit-scrollbar{width:3px;}
+.popup-acc-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+.popup-acc-row{border-bottom:1px solid var(--border);}
+
+.popup-acc-header{
+  display:flex;align-items:center;
+  padding:13px 18px;cursor:pointer;
+  font-family:'Nunito',sans-serif;font-size:13.5px;font-weight:700;
+  color:var(--ink);background:var(--white);
+  transition:background .15s;user-select:none;
+}
+.popup-acc-header:hover{background:#FAFAFA;}
+.popup-acc-header.has-val .popup-acc-name{color:var(--red);}
+
+.popup-acc-name{flex:1;}
+.popup-acc-badge{
+  font-size:10px;font-weight:800;color:var(--red);
+  background:var(--red-l);border-radius:10px;padding:1px 7px;margin-right:6px;
+  display:none;
+}
+.popup-acc-header.has-val .popup-acc-badge{display:inline;}
+
+.popup-acc-content{
+  display:none;
+  padding:0 18px 14px;
+  background:var(--bg);
+}
+.popup-acc-row.open .popup-acc-content{display:block;}
+.popup-acc-row.open .acc-chevron{transform:rotate(180deg);}
+
+.popup-footer{
+  padding:14px 18px 0;border-top:1px solid var(--border);
+  display:flex;gap:10px;
+}
+.popup-apply{
+  flex:1;background:var(--red);border:none;border-radius:9px;padding:12px;
+  font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;color:#fff;cursor:pointer;transition:background .18s;
+}
+.popup-apply:hover{background:var(--red-d);}
+.popup-reset{
+  background:none;border:1.5px solid var(--border);border-radius:9px;padding:12px 18px;
+  font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer;transition:all .18s;
+}
+.popup-reset:hover{border-color:var(--ink);color:var(--ink);}
+
+/* ═══════════════════ GRID ═══════════════════ */
+.main{flex:1;min-width:0;}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:18px;padding:18px 18px 48px;
+}
+
+/* ═══════════════════ CARD ═══════════════════ */
+.card{
+  background:var(--white);border-radius:var(--radius);overflow:hidden;
+  border:1px solid var(--border);box-shadow:var(--sh);cursor:pointer;
+  transition:box-shadow .25s,transform .25s;animation:fadeUp .35s ease both;
+  position:relative;display:flex;flex-direction:column;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.card:hover{box-shadow:var(--sh-h);transform:translateY(-4px);}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--red);transform:scaleX(0);transform-origin:left;
+  transition:transform .3s;border-radius:var(--radius) var(--radius) 0 0;z-index:1;
+}
+.card:hover::before{transform:scaleX(1);}
+
+.img-wrap{position:relative;height:190px;overflow:hidden;background:var(--bg);flex-shrink:0;}
+.img-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s;}
+.card:hover .img-wrap img{transform:scale(1.05);}
+.no-photo{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;}
+
+.badge-sold{
+  position:absolute;top:10px;left:10px;background:var(--red);color:#fff;
+  font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+  padding:3px 8px;border-radius:4px;font-family:'Nunito',sans-serif;
+}
+.badge-n{
+  position:absolute;bottom:8px;right:8px;
+  background:rgba(255,255,255,.92);border:1px solid var(--border);
+  border-radius:20px;padding:2px 8px;font-size:10.5px;color:var(--ink2);
+  font-weight:600;display:flex;align-items:center;gap:3px;
+}
+
+.card-body{padding:14px 16px 12px;flex:1;display:flex;flex-direction:column;}
+.car-make{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:3px;}
+.car-title{font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;line-height:1.25;margin-bottom:10px;}
+.specs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.spec{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 8px;font-size:11px;color:var(--ink2);display:flex;align-items:center;gap:4px;font-weight:600;}
+.card-foot{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border);margin-top:auto;gap:8px;}
+.price{font-family:'Nunito',sans-serif;font-size:20px;font-weight:900;color:var(--red);line-height:1;}
+.por{font-size:12px;color:var(--muted);font-weight:600;}
+.btn-wa{
+  background:var(--wa);border:none;border-radius:7px;padding:7px 12px;
+  font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;color:#fff;
+  cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:5px;
+  transition:background .18s;white-space:nowrap;
+}
+.btn-wa:hover{background:#1ead54;}
+
+.state{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted);}
+.state p{margin-top:10px;font-size:14px;}
+.spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ═══════════════════ DETAIL PAGE ═══════════════════ */
+#detailPage{display:none;position:fixed;inset:0;background:var(--bg);z-index:500;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#detailPage.open{display:block;}
+.dp-bar{
+  background:var(--white);border-bottom:1px solid var(--border);
+  padding:11px 16px;display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:10;box-shadow:0 1px 6px rgba(0,0,0,.06);
+}
+.dp-back{
+  background:none;border:1.5px solid var(--border);border-radius:8px;
+  padding:6px 13px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;
+  color:var(--ink2);cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .18s;
+}
+.dp-back:hover{border-color:var(--red);color:var(--red);}
+.dp-bar-title{font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+
+.dp-body{display:flex;flex-direction:column;max-width:920px;margin:0 auto;}
+@media(min-width:700px){.dp-body{flex-direction:row;align-items:flex-start;}}
+
+.dp-left{flex:1.3;min-width:0;}
+.dp-right{flex:1;min-width:0;}
+
+.dp-carousel{
+  position:relative;background:#111;height:310px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+@media(min-width:700px){.dp-carousel{height:380px;}}
+.dp-carousel img{max-width:100%;max-height:100%;object-fit:contain;display:block;transition:opacity .2s;}
+.dp-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);
+  background:rgba(255,255,255,.92);border:none;border-radius:50%;
+  width:40px;height:40px;font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink);box-shadow:0 2px 10px rgba(0,0,0,.18);
+  transition:background .18s,color .18s;z-index:5;
+}
+.dp-arrow:hover{background:var(--red);color:#fff;}
+.dp-arrow:disabled{opacity:.2;pointer-events:none;}
+.dp-arrow.prev{left:10px;}.dp-arrow.next{right:10px;}
+.dp-counter{
+  position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.55);border-radius:20px;padding:3px 12px;
+  font-size:11.5px;color:#fff;font-weight:700;font-family:'Nunito',sans-serif;
+}
+.dp-thumbs{display:flex;gap:6px;padding:10px 12px;background:var(--white);border-bottom:1px solid var(--border);overflow-x:auto;}
+.dp-thumbs::-webkit-scrollbar{height:3px;}
+.dp-thumbs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.dp-thumb{width:64px;height:46px;object-fit:cover;border-radius:6px;flex-shrink:0;border:2px solid transparent;cursor:pointer;opacity:.55;transition:all .18s;}
+.dp-thumb:hover{opacity:.85;}
+.dp-thumb.active{border-color:var(--red);opacity:1;}
+
+.dp-info{padding:18px 16px 40px;}
+@media(min-width:700px){.dp-info{padding:22px 22px 40px;}}
+.dp-price-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.dp-price{font-family:'Nunito',sans-serif;font-size:26px;font-weight:900;color:var(--red);}
+.dp-sold-tag{background:var(--red);color:#fff;font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:5px;font-family:'Nunito',sans-serif;}
+.dp-title{font-family:'Nunito',sans-serif;font-size:21px;font-weight:900;line-height:1.2;margin-bottom:3px;}
+.dp-make{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:16px;}
+.dp-specs{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:18px;}
+.dp-spec-item{background:var(--white);border:1px solid var(--border);border-radius:9px;padding:11px 13px;display:flex;flex-direction:column;gap:3px;}
+.dp-spec-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:600;}
+.dp-spec-value{font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;color:var(--ink);}
+.dp-cta{display:flex;flex-direction:column;gap:9px;padding-top:14px;border-top:1px solid var(--border);}
+.dp-wa{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--wa);border:none;border-radius:10px;padding:13px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;color:#fff;cursor:pointer;text-decoration:none;transition:background .18s;}
+.dp-wa:hover{background:#1ead54;}
+.dp-call{display:flex;align-items:center;justify-content:center;gap:8px;background:none;border:2px solid var(--border);border-radius:10px;padding:12px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;color:var(--ink2);cursor:pointer;transition:all .18s;}
+.dp-call:hover{border-color:var(--ink);color:var(--ink);}
+.swipe-hint{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.45);border-radius:20px;padding:3px 12px;font-size:10px;color:rgba(255,255,255,.8);pointer-events:none;animation:fh 4s ease 1s forwards;}
+@keyframes fh{0%{opacity:1;}75%{opacity:1;}100%{opacity:0;}}
 
 /* ═══════════════════ MOBILE LAYOUT ═══════════════════ */
 @media(max-width:699px){
@@ -293,110 +568,7 @@ footer::before {
   .footer-top { grid-template-columns:1fr; }
 }
 
-
-/* ═══════════════════ MOBILE FILTER PANEL ═══════════════════ */
-#mobFilterPanel{ border-top:1px solid var(--border); }
-
-.mfp-section{
-  padding:14px 16px;
-  border-bottom:1px solid var(--border);
-}
-.mfp-label{
-  font-family:'Nunito',sans-serif;font-size:10px;font-weight:800;
-  letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);
-  margin-bottom:10px;
-}
-.mfp-pills{ display:flex;flex-wrap:wrap;gap:7px; }
-.mfp-pill{
-  background:var(--bg);border:1.5px solid var(--border);border-radius:8px;
-  padding:7px 14px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;
-  color:var(--ink2);cursor:pointer;transition:all .18s;
-}
-.mfp-pill:active,.mfp-pill.active{
-  border-color:var(--red);color:var(--red);background:var(--red-l);
-}
-
-.mfp-acc-row{ border-bottom:1px solid var(--border); }
-.mfp-acc-hdr{
-  display:flex;align-items:center;gap:10px;
-  padding:14px 16px;cursor:pointer;
-  background:var(--white);
-  -webkit-tap-highlight-color:rgba(0,0,0,.06);
-}
-.mfp-acc-name{
-  font-family:'Nunito',sans-serif;font-size:13.5px;font-weight:700;
-  color:var(--ink);flex:1;
-}
-.mfp-acc-val{
-  font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;
-  color:var(--red);background:var(--red-l);
-  border-radius:6px;padding:3px 9px;white-space:nowrap;
-}
-.mfp-acc-val.any{ background:none;color:var(--muted);padding:3px 0; }
-.mfp-chev{ flex-shrink:0;color:var(--muted);transition:transform .22s; }
-.mfp-acc-row.open .mfp-chev{ transform:rotate(180deg); }
-
-.mfp-acc-body{
-  display:none;
-  padding:0 16px 14px;
-  background:#FAFAFA;
-  flex-direction:column;gap:10px;
-}
-.mfp-acc-row.open .mfp-acc-body{ display:flex; }
-
-.mfp-clear-btn{
-  background:none;border:1.5px dashed var(--border);border-radius:8px;
-  padding:7px 14px;font-family:'Nunito',sans-serif;font-size:12px;
-  font-weight:700;color:var(--muted);cursor:pointer;text-align:left;
-  transition:all .18s;align-self:flex-start;
-}
-.mfp-clear-btn:active{ border-color:var(--red);color:var(--red); }
-
-.mfp-price-lbl{
-  display:flex;justify-content:space-between;align-items:center;
-  font-size:12px;font-weight:700;color:var(--ink2);
-  font-family:'Nunito',sans-serif;margin-bottom:12px;
-}
-.mfp-price-mid{
-  background:var(--red-l);color:var(--red);
-  border-radius:6px;padding:3px 10px;font-size:13px;
-}
-.mfp-footer{
-  display:flex;gap:10px;padding:14px 16px;
-  border-top:1px solid var(--border);
-  background:var(--white);
-}
-.mfp-btn-apply{
-  flex:1;background:var(--red);border:none;border-radius:9px;padding:12px;
-  font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;
-  color:#fff;cursor:pointer;
-}
-.mfp-btn-reset{
-  background:none;border:1.5px solid var(--border);border-radius:9px;
-  padding:12px 18px;font-family:'Nunito',sans-serif;font-size:13px;
-  font-weight:700;color:var(--ink2);cursor:pointer;
-}
-
-
-/* Fix: Hide detail page by default */
-#detailPage {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: #fff;
-  z-index: 9999;
-  overflow-y: auto;
-}
-#detailPage.open {
-  display: block;
-}
-
 </style>
-
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-
 </head>
 <body>
 
@@ -417,7 +589,7 @@ footer::before {
 <!-- ═══════════ MOBILE FILTER BAR ═══════════ -->
 <div class="mob-bar" id="mobBar">
   <!-- Frozen filter button -->
-  <button class="mob-filter-btn" id="mobFilterBtn" onclick="toggleMobFilter()">
+  <button class="mob-filter-btn" id="mobFilterBtn" onclick="openPopup()">
     <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
       <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
     </svg>
@@ -429,96 +601,102 @@ footer::before {
   </div>
 </div>
 
-<!-- ═══════════ MOBILE FILTER PANEL (inline, no overlay) ═══════════ -->
-<div id="mobFilterPanel" style="display:none;background:var(--white);border-bottom:2px solid var(--border);">
+<!-- ═══════════ FILTER POPUP ═══════════ -->
+<div class="popup-overlay" id="popupOverlay" onclick="overlayClose(event)">
+  <div class="popup" id="popup">
+    <div class="popup-handle"><div class="popup-handle-bar"></div></div>
 
-  <!-- Sort -->
-  <div class="mfp-section">
-    <div class="mfp-label">Sort By</div>
-    <div class="mfp-pills" id="mfpSortPills">
-      <button class="mfp-pill active" data-sort="default"    onclick="setMSort('default',this)">Latest</button>
-      <button class="mfp-pill"        data-sort="price-asc"  onclick="setMSort('price-asc',this)">Price ↑</button>
-      <button class="mfp-pill"        data-sort="price-desc" onclick="setMSort('price-desc',this)">Price ↓</button>
-      <button class="mfp-pill"        data-sort="km-asc"     onclick="setMSort('km-asc',this)">Low KM</button>
+    <div class="popup-header">
+      <span class="popup-title">Filter &amp; Sort</span>
+      <button class="popup-close" onclick="closePopup()">✕</button>
+    </div>
+
+    <!-- Sort pills always visible at top -->
+    <div class="popup-sort-strip">
+      <div class="popup-sort-label">Sort By</div>
+      <div class="popup-pills" id="popSortPills">
+        <button class="popup-pill active" data-sort="default"    onclick="setPopSort('default',this)">Latest</button>
+        <button class="popup-pill"        data-sort="price-asc"  onclick="setPopSort('price-asc',this)">Price ↑</button>
+        <button class="popup-pill"        data-sort="price-desc" onclick="setPopSort('price-desc',this)">Price ↓</button>
+        <button class="popup-pill"        data-sort="km-asc"     onclick="setPopSort('km-asc',this)">Low KM</button>
+      </div>
+    </div>
+
+    <!-- Price slider always visible -->
+    <div class="popup-price-strip">
+      <div class="popup-sort-label">Price Range</div>
+      <div class="popup-price-label">
+        <span>₹<span id="popPriceMin">0</span></span>
+        <span class="range-val" id="popPriceRangeLabel">Any Price</span>
+        <span>₹<span id="popPriceMax">50L+</span></span>
+      </div>
+      <div class="dual-slider" id="popDualSlider">
+        <div class="slider-track"></div>
+        <div class="slider-fill" id="popSliderFill"></div>
+        <input type="range" id="popRangeMin" min="0" max="5000000" step="50000" value="0"       oninput="onRangeInput()">
+        <input type="range" id="popRangeMax" min="0" max="5000000" step="50000" value="5000000" oninput="onRangeInput()">
+      </div>
+    </div>
+
+    <!-- Accordion filter rows (scrollable) -->
+    <div class="popup-acc-body">
+
+      <!-- Fuel accordion -->
+      <div class="popup-acc-row" id="paccFuel">
+        <div class="popup-acc-header" onclick="togglePopAcc('paccFuel')">
+          <span class="popup-acc-name">Fuel Type</span>
+          <span class="popup-acc-badge" id="paccFuelBadge"></span>
+          <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="popup-acc-content">
+          <div class="popup-pills" id="popFuelPills"></div>
+        </div>
+      </div>
+
+      <!-- Trans accordion -->
+      <div class="popup-acc-row" id="paccTrans">
+        <div class="popup-acc-header" onclick="togglePopAcc('paccTrans')">
+          <span class="popup-acc-name">Transmission</span>
+          <span class="popup-acc-badge" id="paccTransBadge"></span>
+          <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="popup-acc-content">
+          <div class="popup-pills" id="popTransPills"></div>
+        </div>
+      </div>
+
+      <!-- Body Type accordion -->
+      <div class="popup-acc-row" id="paccBody">
+        <div class="popup-acc-header" onclick="togglePopAcc('paccBody')">
+          <span class="popup-acc-name">Body Type</span>
+          <span class="popup-acc-badge" id="paccBodyBadge"></span>
+          <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="popup-acc-content">
+          <div class="popup-pills" id="popBodyPills"></div>
+        </div>
+      </div>
+
+      <!-- Colour accordion -->
+      <div class="popup-acc-row" id="paccColour">
+        <div class="popup-acc-header" onclick="togglePopAcc('paccColour')">
+          <span class="popup-acc-name">Colour</span>
+          <span class="popup-acc-badge" id="paccColourBadge"></span>
+          <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="popup-acc-content">
+          <div class="popup-pills" id="popColourPills"></div>
+        </div>
+      </div>
+
+    </div><!-- /popup-acc-body -->
+
+    <div class="popup-footer">
+      <button class="popup-reset" onclick="resetPopup()">Reset</button>
+      <button class="popup-apply" onclick="applyPopup()">Show Results</button>
     </div>
   </div>
-
-  <!-- Fuel -->
-  <div class="mfp-acc-row" id="mfpRowFuel">
-    <div class="mfp-acc-hdr" onclick="toggleMfpRow('mfpRowFuel')">
-      <span class="mfp-acc-name">Fuel Type</span>
-      <span class="mfp-acc-val" id="mfpValFuel">Any</span>
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" class="mfp-chev"><path d="M6 9l6 6 6-6"/></svg>
-    </div>
-    <div class="mfp-acc-body" id="mfpBodyFuel">
-      <button class="mfp-clear-btn" onclick="clearMfp('fuel','mfpRowFuel')">✕ Clear / Any</button>
-      <div class="mfp-pills" id="mfpFuelPills"></div>
-    </div>
-  </div>
-
-  <!-- Transmission -->
-  <div class="mfp-acc-row" id="mfpRowTrans">
-    <div class="mfp-acc-hdr" onclick="toggleMfpRow('mfpRowTrans')">
-      <span class="mfp-acc-name">Transmission</span>
-      <span class="mfp-acc-val" id="mfpValTrans">Any</span>
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" class="mfp-chev"><path d="M6 9l6 6 6-6"/></svg>
-    </div>
-    <div class="mfp-acc-body" id="mfpBodyTrans">
-      <button class="mfp-clear-btn" onclick="clearMfp('trans','mfpRowTrans')">✕ Clear / Any</button>
-      <div class="mfp-pills" id="mfpTransPills"></div>
-    </div>
-  </div>
-
-  <!-- Body Type -->
-  <div class="mfp-acc-row" id="mfpRowBody">
-    <div class="mfp-acc-hdr" onclick="toggleMfpRow('mfpRowBody')">
-      <span class="mfp-acc-name">Body Type</span>
-      <span class="mfp-acc-val" id="mfpValBody">Any</span>
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" class="mfp-chev"><path d="M6 9l6 6 6-6"/></svg>
-    </div>
-    <div class="mfp-acc-body" id="mfpBodyBody">
-      <button class="mfp-clear-btn" onclick="clearMfp('bodyType','mfpRowBody')">✕ Clear / Any</button>
-      <div class="mfp-pills" id="mfpBodyPills"></div>
-    </div>
-  </div>
-
-  <!-- Colour -->
-  <div class="mfp-acc-row" id="mfpRowColour">
-    <div class="mfp-acc-hdr" onclick="toggleMfpRow('mfpRowColour')">
-      <span class="mfp-acc-name">Colour</span>
-      <span class="mfp-acc-val" id="mfpValColour">Any</span>
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" class="mfp-chev"><path d="M6 9l6 6 6-6"/></svg>
-    </div>
-    <div class="mfp-acc-body" id="mfpBodyColour">
-      <button class="mfp-clear-btn" onclick="clearMfp('colour','mfpRowColour')">✕ Clear / Any</button>
-      <div class="mfp-pills" id="mfpColourPills"></div>
-    </div>
-  </div>
-
-  <!-- Price -->
-  <div class="mfp-section">
-    <div class="mfp-label">Price Range</div>
-    <div class="mfp-price-lbl">
-      <span>₹<span id="mfpPriceMin">0</span></span>
-      <span class="mfp-price-mid" id="mfpPriceLabel">Any Price</span>
-      <span>₹<span id="mfpPriceMax">50L+</span></span>
-    </div>
-    <div class="dual-slider" id="mfpDualSlider">
-      <div class="slider-track"></div>
-      <div class="slider-fill" id="mfpSliderFill"></div>
-      <input type="range" id="mfpRangeMin" min="0" max="5000000" step="50000" value="0" oninput="onMfpRange()">
-      <input type="range" id="mfpRangeMax" min="0" max="5000000" step="50000" value="5000000" oninput="onMfpRange()">
-    </div>
-  </div>
-
-  <!-- Footer: reset + apply -->
-  <div class="mfp-footer">
-    <button class="mfp-btn-reset" onclick="resetMfp()">Reset</button>
-    <button class="mfp-btn-apply" onclick="applyMfp()">Show Results</button>
-  </div>
-
 </div>
-
 
 <!-- ═══════════ MAIN LAYOUT ═══════════ -->
 <div class="layout" id="listView">
@@ -694,25 +872,10 @@ function fixDriveUrl(url) {
 }
 
 // ── FETCH ──
-// ── FETCH INVENTORY (CORS-safe) ──
-fetch(CSV_URL, { cache: "no-store" })
-  .then(response => {
-    if (!response.ok) throw new Error("Network response was not ok");
-    return response.text();
-  })
-  .then(data => {
-    if (!data || data.trim().length < 10) {
-      throw new Error("Empty CSV response");
-    }
-    parseCSV(data);
-  })
-  .catch(error => {
-    console.error("Inventory load error:", error);
-    document.getElementById('grid').innerHTML =
-      `<div class="state">
-         <p>⚠️ Inventory temporarily unavailable.<br>Please refresh or try again later.</p>
-       </div>`;
-  });
+fetch(CSV_URL).then(r=>r.text()).then(parseCSV).catch(()=>{
+  document.getElementById('grid').innerHTML =
+    `<div class="state"><p>⚠️ Could not load inventory.</p></div>`;
+});
 
 function parseCSV(raw) {
   const lines = raw.trim().split('\n').slice(1);
@@ -736,7 +899,6 @@ function parseCSV(raw) {
   buildSidebar();
   buildMobChips();
   buildPopupOptions();
-  buildMfpOptions();
   applyFilters();
 }
 function cl(v)  { return (v||'').trim().replace(/^"|"$/g,''); }
@@ -781,16 +943,14 @@ function buildSidebar() {
     `<button class="sb-qpill" data-trans="${t}" onclick="setSbTransQ('${t}',this)">${t}</button>`
   ).join('');
 
-  // Accordion: Fuel body — "Any" clears selection, then each option
+  // Accordion: Fuel body (multi-select, no Any pill)
   document.getElementById('accFuelBody').innerHTML =
-    `<button class="acc-pill acc-pill-any" data-fuel="" onclick="clearSbFilter('fuel')">Any</button>` +
     fuels.map(f=>
       `<button class="acc-pill" data-fuel="${f}" onclick="setSbFuelAcc('${f}',this)">${f}</button>`
     ).join('');
 
-  // Accordion: Trans body
+  // Accordion: Trans body (multi-select)
   document.getElementById('accTransBody').innerHTML =
-    `<button class="acc-pill acc-pill-any" data-trans="" onclick="clearSbFilter('trans')">Any</button>` +
     trans.map(t=>
       `<button class="acc-pill" data-trans="${t}" onclick="setSbTransAcc('${t}',this)">${t}</button>`
     ).join('');
@@ -805,7 +965,6 @@ function buildSidebar() {
         <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
       </div>
       <div class="acc-body" id="accBodyBody">
-        <button class="acc-pill acc-pill-any" onclick="clearSbFilter('bodyType')">Any</button>
         ${bodies.map(b=>`<button class="acc-pill" data-body="${b}" onclick="setSbBodyAcc('${b}',this)">${b}</button>`).join('')}
       </div>
     </div>
@@ -816,7 +975,6 @@ function buildSidebar() {
         <svg class="acc-chevron" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
       </div>
       <div class="acc-body" id="accColourBody">
-        <button class="acc-pill acc-pill-any" onclick="clearSbFilter('colour')">Any</button>
         ${colours.map(c=>`<button class="acc-pill" data-colour="${c}" onclick="setSbColourAcc('${c}',this)">${c}</button>`).join('')}
       </div>
     </div>`;
@@ -984,21 +1142,6 @@ function setPopColour(v, btn) {
   btn.classList.toggle('active', P.colour.includes(v));
 }
 
-// Clear a single sidebar filter
-function clearSbFilter(field) {
-  S[field] = [];
-  // Deactivate all pills in that filter's accordion
-  const bodyIds = {fuel:'accFuelBody', trans:'accTransBody', bodyType:'accBodyBody', colour:'accColourBody'};
-  const badgeIds = {fuel:['accFuel','accFuelBadge'], trans:['accTrans','accTransBadge'], bodyType:['accBody','accBodyBadge'], colour:['accColour','accColourBadge']};
-  const qIds = {fuel:'#sbQuickFuel .sb-qpill', trans:'#sbQuickTrans .sb-qpill'};
-  const bodyEl = document.getElementById(bodyIds[field]);
-  if (bodyEl) bodyEl.querySelectorAll('.acc-pill').forEach(b=>b.classList.remove('active'));
-  if (qIds[field]) document.querySelectorAll(qIds[field]).forEach(b=>b.classList.remove('active'));
-  const [rowId, badgeId] = badgeIds[field] || [];
-  if (rowId) updateAccBadge(rowId, badgeId, []);
-  applyFilters();
-}
-
 function syncAccFuel() {
   document.querySelectorAll('#accFuelBody .acc-pill').forEach(b=>
     b.classList.toggle('active', S.fuel.includes(b.dataset.fuel)));
@@ -1074,16 +1217,13 @@ function openPopup() {
   };
   syncPopupUI();
   const ov = document.getElementById('popupOverlay');
-  ov.style.display = 'flex';
   ov.classList.add('open');
-  // Scroll to very top so popup (absolute positioned in iframe) is visible
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0;
+  // Scroll to top so popup is visible even in iframe
+  try { window.scrollTo(0,0); } catch(e){}
+  try { window.parent.scrollTo(0,0); } catch(e){}
 }
 function closePopup() {
-  const ov = document.getElementById('popupOverlay');
-  ov.classList.remove('open');
-  ov.style.display = '';
+  document.getElementById('popupOverlay').classList.remove('open');
 }
 function overlayClose(e) {
   if(e.target===document.getElementById('popupOverlay')) closePopup();
@@ -1095,13 +1235,10 @@ function syncPopupUI() {
   document.querySelectorAll('#popTransPills .popup-pill').forEach(b=>b.classList.toggle('active', (P.trans||[]).includes(b.dataset.trans)));
   document.querySelectorAll('#popBodyPills .popup-pill').forEach(b=>b.classList.toggle('active', (P.bodyType||[]).includes(b.dataset.body)));
   document.querySelectorAll('#popColourPills .popup-pill').forEach(b=>b.classList.toggle('active', (P.colour||[]).includes(b.dataset.colour)));
-  // Sync pf-row summary values
-  updatePfRowVal('pfrFuel',   P.fuel||[]);
-  updatePfRowVal('pfrTrans',  P.trans||[]);
-  updatePfRowVal('pfrBody',   P.bodyType||[]);
-  updatePfRowVal('pfrColour', P.colour||[]);
-  // Close all pf-rows when reopening popup
-  document.querySelectorAll('.pf-row.open').forEach(r=>r.classList.remove('open'));
+  updatePopAccBadge('paccFuel','paccFuelBadge', P.fuel||[]);
+  updatePopAccBadge('paccTrans','paccTransBadge', P.trans||[]);
+  updatePopAccBadge('paccBody','paccBodyBadge', P.bodyType||[]);
+  updatePopAccBadge('paccColour','paccColourBadge', P.colour||[]);
   document.getElementById('popRangeMin').value = P.priceMin;
   document.getElementById('popRangeMax').value = P.priceMax;
   updatePopSlider();
@@ -1177,7 +1314,6 @@ function resetPopup() {
   document.getElementById('popRangeMin').value = 0;
   document.getElementById('popRangeMax').value = MAX_PRICE;
   syncPopupUI();
-  // syncPopupUI calls updatePfRowVal for all rows already
 }
 
 // ══════════════════════════════════════
@@ -1383,197 +1519,6 @@ document.addEventListener('keydown',e=>{
   if(!document.getElementById('detailPage').classList.contains('open'))return;
   if(e.key==='ArrowLeft')navDP(-1);if(e.key==='ArrowRight')navDP(1);if(e.key==='Escape')closeDetail();
 });
-
-
-// ══════════════════════════════════════
-//  MOBILE FILTER PANEL
-// ══════════════════════════════════════
-
-// Temp state for panel (committed on "Show Results")
-let MP = {};
-
-function buildMfpOptions() {
-  const fuels   = [...new Set(allCars.map(c=>c.fuel).filter(Boolean))].sort();
-  const trans   = [...new Set(allCars.map(c=>c.trans).filter(Boolean))].sort();
-  const bodies  = [...new Set(allCars.map(c=>c.bodyType).filter(Boolean))].sort();
-  const colours = [...new Set(allCars.map(c=>c.colour).filter(Boolean))].sort();
-
-  function makePills(containerId, items, field, handler) {
-    const el = document.getElementById(containerId);
-    if (!el) return;
-    el.innerHTML = '';
-    items.forEach(v => {
-      const b = document.createElement('button');
-      b.className = 'mfp-pill';
-      b.textContent = v;
-      b.dataset[field] = v;
-      b.onclick = () => handler(v, b);
-      el.appendChild(b);
-    });
-  }
-  makePills('mfpFuelPills',   fuels,   'fuel',   (v,b) => toggleMfpPill(b, 'fuel',   v));
-  makePills('mfpTransPills',  trans,   'trans',  (v,b) => toggleMfpPill(b, 'trans',  v));
-  makePills('mfpBodyPills',   bodies,  'body',   (v,b) => toggleMfpPill(b, 'bodyType',v));
-  makePills('mfpColourPills', colours, 'colour', (v,b) => toggleMfpPill(b, 'colour', v));
-}
-
-function toggleMobFilter() {
-  const panel = document.getElementById('mobFilterPanel');
-  const btn   = document.getElementById('mobFilterBtn');
-  const open  = panel.style.display === 'none' || panel.style.display === '';
-  if (open) {
-    // Copy current S into MP
-    MP = {
-      fuel:     [...S.fuel],
-      trans:    [...S.trans],
-      bodyType: [...S.bodyType],
-      colour:   [...S.colour],
-      priceMin: S.priceMin,
-      priceMax: S.priceMax,
-      sort:     S.sort
-    };
-    syncMfpUI();
-    panel.style.display = 'block';
-    btn.textContent = '✕ Close';
-    btn.style.background = '#555';
-  } else {
-    closeMobFilter();
-  }
-}
-
-function closeMobFilter() {
-  const panel = document.getElementById('mobFilterPanel');
-  const btn   = document.getElementById('mobFilterBtn');
-  panel.style.display = 'none';
-  // Restore button label
-  const hasFilter = S.fuel.length||S.trans.length||S.bodyType.length||S.colour.length||S.priceMin>0||S.priceMax<MAX_PRICE||S.sort!=='default';
-  btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg> Filter &amp; Sort';
-  btn.style.background = '';
-  btn.classList.toggle('has-filter', !!hasFilter);
-}
-
-function toggleMfpRow(rowId) {
-  const row = document.getElementById(rowId);
-  const isOpen = row.classList.contains('open');
-  // Close all rows
-  document.querySelectorAll('.mfp-acc-row.open').forEach(r => r.classList.remove('open'));
-  if (!isOpen) row.classList.add('open');
-}
-
-function toggleMfpPill(btn, field, val) {
-  toggleArr(MP[field], val);
-  btn.classList.toggle('active', MP[field].includes(val));
-  updateMfpVal(field);
-}
-
-function clearMfp(field, rowId) {
-  MP[field] = [];
-  // Deactivate all pills
-  const containerMap = {fuel:'mfpFuelPills', trans:'mfpTransPills', bodyType:'mfpBodyPills', colour:'mfpColourPills'};
-  const el = document.getElementById(containerMap[field]);
-  if (el) el.querySelectorAll('.mfp-pill').forEach(b => b.classList.remove('active'));
-  updateMfpVal(field);
-}
-
-function updateMfpVal(field) {
-  const valIds = {fuel:'mfpValFuel', trans:'mfpValTrans', bodyType:'mfpValBody', colour:'mfpValColour'};
-  const el = document.getElementById(valIds[field]);
-  if (!el) return;
-  const arr = MP[field] || [];
-  if (!arr.length) {
-    el.textContent = 'Any';
-    el.classList.add('any');
-  } else {
-    el.textContent = arr.length === 1 ? arr[0] : arr.length + ' selected';
-    el.classList.remove('any');
-  }
-}
-
-function setMSort(v, btn) {
-  MP.sort = v;
-  document.querySelectorAll('#mfpSortPills .mfp-pill').forEach(b => b.classList.toggle('active', b === btn));
-}
-
-function onMfpRange() {
-  let mn = parseInt(document.getElementById('mfpRangeMin').value);
-  let mx = parseInt(document.getElementById('mfpRangeMax').value);
-  if (mn > mx) { const t=mn; mn=mx; mx=t; }
-  MP.priceMin = mn; MP.priceMax = mx;
-  updateMfpSlider();
-}
-
-function updateMfpSlider() {
-  const mn = MP.priceMin, mx = MP.priceMax;
-  const p1 = mn/MAX_PRICE*100, p2 = mx/MAX_PRICE*100;
-  document.getElementById('mfpRangeMin').value = mn;
-  document.getElementById('mfpRangeMax').value = mx;
-  document.getElementById('mfpSliderFill').style.left  = p1+'%';
-  document.getElementById('mfpSliderFill').style.width = (p2-p1)+'%';
-  document.getElementById('mfpPriceMin').textContent = fmtPrice(mn).replace('₹','');
-  document.getElementById('mfpPriceMax').textContent = mx>=MAX_PRICE?'50L+':fmtPrice(mx).replace('₹','');
-  document.getElementById('mfpPriceLabel').textContent =
-    mn===0&&mx>=MAX_PRICE ? 'Any Price' : `${fmtPrice(mn)} – ${mx>=MAX_PRICE?'50L+':fmtPrice(mx)}`;
-}
-
-function syncMfpUI() {
-  // Sort pills
-  document.querySelectorAll('#mfpSortPills .mfp-pill').forEach(b => {
-    b.classList.toggle('active', b.dataset.sort === MP.sort);
-  });
-  // Filter pills
-  document.querySelectorAll('#mfpFuelPills .mfp-pill').forEach(b =>
-    b.classList.toggle('active', (MP.fuel||[]).includes(b.dataset.fuel)));
-  document.querySelectorAll('#mfpTransPills .mfp-pill').forEach(b =>
-    b.classList.toggle('active', (MP.trans||[]).includes(b.dataset.trans)));
-  document.querySelectorAll('#mfpBodyPills .mfp-pill').forEach(b =>
-    b.classList.toggle('active', (MP.bodyType||[]).includes(b.dataset.body)));
-  document.querySelectorAll('#mfpColourPills .mfp-pill').forEach(b =>
-    b.classList.toggle('active', (MP.colour||[]).includes(b.dataset.colour)));
-  // Val labels
-  ['fuel','trans','bodyType','colour'].forEach(f => updateMfpVal(f));
-  // Close all rows
-  document.querySelectorAll('.mfp-acc-row.open').forEach(r => r.classList.remove('open'));
-  // Price slider
-  document.getElementById('mfpRangeMin').value = MP.priceMin;
-  document.getElementById('mfpRangeMax').value = MP.priceMax;
-  updateMfpSlider();
-}
-
-function applyMfp() {
-  S.fuel     = [...(MP.fuel||[])];
-  S.trans    = [...(MP.trans||[])];
-  S.bodyType = [...(MP.bodyType||[])];
-  S.colour   = [...(MP.colour||[])];
-  S.priceMin = MP.priceMin;
-  S.priceMax = MP.priceMax;
-  S.sort     = MP.sort;
-  // Sync sidebar
-  updateSbSlider();
-  syncAccFuel(); syncAccTrans();
-  if(document.getElementById('accBodyBody'))
-    document.querySelectorAll('#accBodyBody .acc-pill').forEach(b=>b.classList.toggle('active', S.bodyType.includes(b.dataset.body)));
-  updateAccBadge('accBody','accBodyBadge', S.bodyType);
-  if(document.getElementById('accColourBody'))
-    document.querySelectorAll('#accColourBody .acc-pill').forEach(b=>b.classList.toggle('active', S.colour.includes(b.dataset.colour)));
-  updateAccBadge('accColour','accColourBadge', S.colour);
-  document.querySelectorAll('#accSort .acc-pill').forEach((b,i)=>{
-    const sorts={0:'default',1:'price-asc',2:'price-desc',3:'km-asc'};
-    b.classList.toggle('active', sorts[i]===S.sort);
-  });
-  const sortLabels={default:'','price-asc':'Price ↑','price-desc':'Price ↓','km-asc':'Low KM'};
-  updateAccBadge('accSort','accSortBadge', sortLabels[S.sort]||'');
-  const priceActive = S.priceMin>0||S.priceMax<MAX_PRICE;
-  updateAccBadge('accPrice','accPriceBadge', priceActive?fmtPrice(S.priceMin)+'–'+fmtPrice(S.priceMax):'');
-  closeMobFilter();
-  applyFilters();
-}
-
-function resetMfp() {
-  MP = { fuel:[], trans:[], bodyType:[], colour:[], priceMin:0, priceMax:MAX_PRICE, sort:'default' };
-  document.getElementById('mfpRangeMin').value = 0;
-  document.getElementById('mfpRangeMax').value = MAX_PRICE;
-  syncMfpUI();
-}
 
 // ── IFRAME RESIZE ──
 function notifyHeight(){
